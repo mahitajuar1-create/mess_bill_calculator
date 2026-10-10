@@ -1,0 +1,63 @@
+/**
+ * Mess Management System - Print Stylesheet
+ */
+@media print {
+  body {
+    background: #FFFFFF !important;
+    color: #000000 !important;
+    padding: 0 !important;
+  }
+
+  .sidebar,
+  .topbar,
+  .primary-actions-grid,
+  .toolbar-card,
+  .mobile-bottom-nav,
+  .modal-header,
+  .modal-close-btn,
+  .no-print,
+  button {
+    display: none !important;
+  }
+
+  .modal-overlay {
+    position: static !important;
+    display: block !important;
+    background: transparent !important;
+    padding: 0 !important;
+  }
+
+  .modal-card {
+    max-width: 100% !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+  }
+
+  .print-paper {
+    padding: 0 !important;
+    border: none !important;
+  }
+
+  .data-table th {
+    background-color: #000000 !important;
+    color: #FFFFFF !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .badge-due {
+    color: #DC2626 !important;
+    font-weight: bold;
+  }
+
+  .badge-overpaid {
+    color: #059669 !important;
+    font-weight: bold;
+  }
+
+  @page {
+    margin: 15mm;
+    size: A4 portrait;
+  }
+}
