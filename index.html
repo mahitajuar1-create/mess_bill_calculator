@@ -39,6 +39,7 @@
       --text-muted: #64748B;
       --danger: #EF4444;
       --success: #10B981;
+      --warning: #F59E0B;
       --bg-color: #F1F5F9;
       --radius-lg: 16px;
       --radius-md: 12px;
@@ -315,7 +316,7 @@
           <div class="card-header">
             <div>
               <h3 class="card-title">📑 মাসিক হিসাব বিবরণী ও বিগত মাসের PDF আর্কাইভ</h3>
-              <p style="font-size:12px; color:var(--text-muted); margin-top:2px;">চলতি ও বিগত ২ মাসের অফিশিয়াল রিপোর্ট ডাউনলোড ও প্রিন্ট করুন</p>
+              <p style="font-size:12px; color:var(--text-muted); margin-top:2px;">চলতি ও বিগত ২ মাসের রিপোর্ট দেখুন ও প্রিন্ট করুন</p>
             </div>
             <button class="btn btn-primary btn-sm" onclick="openMonthPdfModal('curr')">🖨️ চলতি মাসের পূর্ণাঙ্গ PDF</button>
           </div>
@@ -361,7 +362,7 @@
       </div>
     </main>
 
-    <!-- MOBILE NAV -->
+    <!-- MOBILE BOTTOM NAV -->
     <nav class="m-bottom-nav">
       <div class="m-item active" id="mNav-dashboard" onclick="showTab('dashboard')"><span>📊 হোম</span></div>
       <div class="m-item" id="mNav-shopping" onclick="showTab('shopping')"><span>🛒 বাজার</span></div>
@@ -371,7 +372,7 @@
     </nav>
   </div>
 
-  <!-- MODAL: ADD SHOPPING (WITH CAMERA & GALLERY VOUCHER BUTTONS) -->
+  <!-- MODAL: ADD SHOPPING -->
   <div class="modal-overlay" id="modalShop">
     <div class="modal-box">
       <div class="modal-header">
@@ -398,10 +399,9 @@
         <select class="form-control" id="mShopShopper"></select>
       </div>
 
-      <!-- VOUCHER / RECEIPT UPLOAD (CAMERA & GALLERY OPTIONS) -->
+      <!-- VOUCHER / RECEIPT BUTTONS -->
       <div class="form-group" style="background:var(--surface-alt); padding:12px; border-radius:8px; border:1px solid #CBD5E1;">
         <label style="margin-bottom:6px;">📸 ভাউচার / মেমো / রসিদ সংযুক্তি:</label>
-        <!-- Hidden input for file selection -->
         <input type="file" id="mShopVoucherInput" accept="image/*" style="display:none;" onchange="handleVoucherFileSelected(this)">
 
         <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px;">
@@ -413,9 +413,8 @@
           </button>
         </div>
 
-        <!-- Preview Box when an image is attached -->
         <div id="voucherPreviewBox" style="display:none; align-items:center; gap:12px; padding:8px 10px; background:#FFFFFF; border:1px dashed #CBD5E1; border-radius:6px;">
-          <img id="voucherPreviewImg" src="" style="width:50px; height:50px; object-fit:cover; border-radius:4px; border:1px solid #CBD5E1; cursor:pointer;" onclick="previewCurrentVoucherModal()" title="বড় করে দেখতে ক্লিক করুন">
+          <img id="voucherPreviewImg" src="" style="width:50px; height:50px; object-fit:cover; border-radius:4px; border:1px solid #CBD5E1; cursor:pointer;" onclick="previewCurrentVoucherModal()">
           <div style="flex:1; overflow:hidden;">
             <div id="voucherFileName" style="font-weight:600; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">memo.jpg</div>
             <div id="voucherFileSize" style="font-size:11px; color:#10B981;">ছবি প্রস্তুত আছে ✓</div>
@@ -435,7 +434,7 @@
   <div class="modal-overlay" id="modalVoucher">
     <div class="modal-box" style="max-width:500px; text-align:center;">
       <div class="modal-header">
-        <h3 id="modalVoucherTitle">🧾 ভাউচার / মেমো কপি</h3>
+        <h3 id="modalVoucherTitle">🧾 ভাউচার / মেমোর কপি</h3>
         <button class="modal-close" onclick="closeModal('modalVoucher')">&times;</button>
       </div>
       <div style="background:#0F172A; padding:8px; border-radius:8px; display:flex; justify-content:center; align-items:center;">
@@ -512,17 +511,17 @@
     </div>
   </div>
 
-  <!-- MODAL: COMPREHENSIVE PDF DOWNLOAD -->
+  <!-- MODAL: PDF STATEMENT -->
   <div class="modal-overlay" id="modalMonthlyPdf">
     <div class="modal-box" style="max-width:750px;">
       <div class="modal-header">
-        <h3 id="modalPdfMonthTitle">📄 অফিশিয়াল মাসিক বিল স্টেটমেন্ট (PDF)</h3>
+        <h3 id="modalPdfMonthTitle">📄 অফিশিয়াল মাসিক বিল স্টেটমেন্ট</h3>
         <button class="modal-close" onclick="closeModal('modalMonthlyPdf')">&times;</button>
       </div>
       <div id="printablePdfContent" style="background:#fff; border:1px solid #CBD5E1; border-radius:6px; padding:20px;">
         <div style="text-align:center; border-bottom:2px solid #0F172A; padding-bottom:12px; margin-bottom:16px;">
           <h2 style="font-size:20px; color:#0F172A;">OUR HOME COMMUNITY</h2>
-          <p style="font-size:12px; color:#64748B;">Official Monthly Mess & Flat Expense Statement</p>
+          <p style="font-size:12px; color:#64748B;">Official Monthly Statement</p>
           <div id="pdfMonthBadge" style="display:inline-block; background:#0F172A; color:#fff; font-size:12px; font-weight:700; padding:3px 12px; border-radius:12px; margin-top:6px;">মাস</div>
         </div>
         
@@ -577,7 +576,7 @@
 
   <div id="appToast" class="toast"></div>
 
-  <!-- JAVASCRIPT LOGIC -->
+  <!-- JAVASCRIPT ENGINE -->
   <script>
     let ADMIN_SECRET_PIN = "123456";
     let currentUser = null; 
@@ -662,6 +661,7 @@
       onSnapshot(docRef, (docSnap) => {
         if (docSnap.exists()) {
           appData = docSnap.data();
+          localStorage.setItem("OUR_APARTMENT_DB", JSON.stringify(appData));
           if (currentUser) {
             updateUserDisplay();
             renderAll();
@@ -673,6 +673,7 @@
     }
 
     function saveState() {
+      localStorage.setItem("OUR_APARTMENT_DB", JSON.stringify(appData));
       if (window.firestoreDb && window.firestoreTools) {
         const { doc, setDoc } = window.firestoreTools;
         setDoc(doc(window.firestoreDb, "messes_data", FIRESTORE_DOC_ID), appData).catch(e => console.error(e));
@@ -819,8 +820,20 @@
       document.getElementById("loginAlert").style.display = "none";
     }
 
+    // MEMBER LOGIN (BY PHONE NUMBER ONLY)
     function doMemberLogin() {
-      const p = cleanPhone(document.getElementById("loginPhoneInput").value);
+      const phoneInput = document.getElementById("loginPhoneInput");
+      const p = cleanPhone(phoneInput ? phoneInput.value : "");
+      const alertBox = document.getElementById("loginAlert");
+      alertBox.style.display = "none";
+
+      if (!p) {
+        alertBox.textContent = "অনুগ্রহ করে আপনার মোবাইল নম্বর দিন!";
+        alertBox.style.display = "block";
+        return;
+      }
+
+      // Check member from appData
       const found = appData.members.find(m => cleanPhone(m.phone) === p);
       if (found) {
         currentUser = { id: found.id, name: found.name, phone: found.phone, role: "MEMBER" };
@@ -833,14 +846,24 @@
         renderAll();
         showToast(`স্বাগতম, ${found.name}!`);
       } else {
-        const a = document.getElementById("loginAlert");
-        a.textContent = "❌ এই মোবাইল নম্বরে কোনো মেম্বার পাওয়া যায়নি!";
-        a.style.display = "block";
+        alertBox.textContent = "❌ এই মোবাইল নম্বরে কোনো মেম্বার পাওয়া যায়নি! সঠিক নম্বর দিন।";
+        alertBox.style.display = "block";
       }
     }
 
+    // ADMIN LOGIN (BY SECRET PIN ONLY)
     function doAdminLogin() {
-      const pin = document.getElementById("adminPinInput").value.trim();
+      const pinInput = document.getElementById("adminPinInput");
+      const pin = pinInput ? pinInput.value.trim() : "";
+      const alertBox = document.getElementById("loginAlert");
+      alertBox.style.display = "none";
+
+      if (!pin) {
+        alertBox.textContent = "অনুগ্রহ করে অ্যাডমিন পিন দিন!";
+        alertBox.style.display = "block";
+        return;
+      }
+
       if (pin === ADMIN_SECRET_PIN) {
         currentUser = { id: "admin", name: "মাহি (Admin)", phone: "01308650721", role: "ADMIN" };
         sessionStorage.setItem("ACTIVE_SESSION_USER", JSON.stringify(currentUser));
@@ -852,9 +875,8 @@
         renderAll();
         showToast("অ্যাডমিন হিসেবে সফল লগইন হয়েছে!");
       } else {
-        const a = document.getElementById("loginAlert");
-        a.textContent = "❌ ভুল অ্যাডমিন পিন!";
-        a.style.display = "block";
+        alertBox.textContent = "❌ ভুল অ্যাডমিন পিন! মেম্বাররা মেম্বার ট্যাবে লগইন করুন।";
+        alertBox.style.display = "block";
       }
     }
 
@@ -879,7 +901,7 @@
       if (document.getElementById("mNav-" + tabId)) document.getElementById("mNav-" + tabId).classList.add("active");
     }
 
-    /* VOUCHER BUTTON CLICK HANDLER (CAMERA OR GALLERY) */
+    /* VOUCHER BUTTON CLICK HANDLER */
     function triggerVoucherSelect(useCamera) {
       const fileInput = document.getElementById("mShopVoucherInput");
       if (!fileInput) return;
@@ -891,7 +913,6 @@
       fileInput.click();
     }
 
-    /* COMPRESSED VOUCHER UPLOAD (UNDER 400KB TO AVOID FIRESTORE LIMIT) */
     function handleVoucherFileSelected(input) {
       if (!input.files || !input.files[0]) return;
       const file = input.files[0];
@@ -1125,11 +1146,14 @@
 
     function closeModal(id) { document.getElementById(id).classList.remove("active"); }
 
-    // STRICT INITIALIZATION (NO PERMANENT AUTO-LOGIN)
     window.onload = function() {
-      localStorage.removeItem("OUR_LOGGED_USER");
-      localStorage.removeItem("OUR_APT_SESSION");
+      // 1. Load cached app data if available
+      const saved = localStorage.getItem("OUR_APARTMENT_DB");
+      if (saved) {
+        try { appData = JSON.parse(saved); } catch (e) {}
+      }
 
+      // 2. Check if already logged in inside this specific session
       const sessionUser = sessionStorage.getItem("ACTIVE_SESSION_USER");
       if (sessionUser) {
         try {
@@ -1143,12 +1167,14 @@
         }
       }
 
+      // 3. Otherwise strictly enforce the login screen
       if (!currentUser) {
         document.getElementById("appMainWrapper").style.display = "none";
         document.getElementById("loginScreen").style.display = "flex";
         switchLoginMode("MEMBER");
       }
 
+      // 4. Initialize realtime live sync with Firestore
       initFirebaseSync();
     };
   </script>
