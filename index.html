@@ -6,7 +6,7 @@
   <title>Our Home Community - মেস ম্যানেজমেন্ট সিস্টেম</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap">
   
-  <!-- Firebase SDK Modules for Realtime Live Sync -->
+  <!-- Firebase SDK Modules -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -48,8 +48,8 @@
     body { background-color: var(--bg-color); color: var(--text-main); padding-bottom: 80px; -webkit-font-smoothing: antialiased; }
     @media (min-width: 1024px) { body { padding-bottom: 0; } }
 
-    /* AUTH OVERLAY / LOGIN SCREEN */
-    .login-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%); display: flex; align-items: center; justify-content: center; z-index: 10000; padding: 16px; }
+    /* MANDATORY LOGIN SCREEN (DEFAULT VISIBLE) */
+    .login-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%); display: flex; align-items: center; justify-content: center; z-index: 99999; padding: 16px; }
     .login-box { background: #FFFFFF; border-radius: var(--radius-lg); max-width: 420px; width: 100%; padding: 26px 20px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4); }
     .login-header { text-align: center; margin-bottom: 18px; }
     .login-header h1 { font-size: 22px; font-weight: 800; color: var(--dark-bg); margin-bottom: 4px; }
@@ -59,7 +59,7 @@
     .login-tab-btn.active { background: #FFFFFF; color: var(--dark-bg); box-shadow: 0 2px 4px rgba(0,0,0,0.06); }
     .login-alert { background: #FEE2E2; color: #991B1B; padding: 10px 14px; border-radius: 6px; font-size: 13px; margin-bottom: 14px; display: none; border: 1px solid #FCA5A5; }
 
-    /* APP LAYOUT */
+    /* APP CONTAINER (DEFAULT HIDDEN) */
     .app-container { display: none; min-height: 100vh; }
     .sidebar { display: none; width: 250px; background: var(--dark-bg); color: #fff; padding: 20px 12px; position: sticky; top: 0; height: 100vh; flex-shrink: 0; }
     @media (min-width: 1024px) { .sidebar { display: flex; flex-direction: column; } }
@@ -113,7 +113,7 @@
 
     .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 2500; padding: 16px; }
     .modal-overlay.active { display: flex; }
-    .modal-box { background: #fff; border-radius: var(--radius-lg); width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto; padding: 20px; }
+    .modal-box { background: #fff; border-radius: var(--radius-lg); width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; padding: 20px; }
     .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
     .modal-close { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-muted); }
 
@@ -130,11 +130,11 @@
 </head>
 <body>
 
-  <!-- SIGN IN OVERLAY (MANDATORY GATEWAY) -->
+  <!-- SIGN IN OVERLAY (ALL USERS WILL SEE THIS FIRST) -->
   <div class="login-overlay" id="loginScreen">
     <div class="login-box">
       <div class="login-header">
-        <h1 id="loginHeaderAptName">Our Home Community</h1>
+        <h1>Our Home Community</h1>
         <p>মেস ম্যানেজমেন্ট সিস্টেমে স্বাগতম</p>
       </div>
 
@@ -150,7 +150,7 @@
         <div class="form-group">
           <label>নিবন্ধিত মোবাইল নম্বর দিন: *</label>
           <input type="tel" class="form-control" id="loginPhoneInput" placeholder="যেমন: 01711000001" onkeypress="if(event.key==='Enter') doMemberLogin()">
-          <small style="color:var(--text-muted); display:block; margin-top:4px;">🔒 শুধুমাত্র অ্যাডমিনের অ্যাড করা মোবাইল নম্বর দিয়ে লগইন হবে।</small>
+          <small style="color:var(--text-muted); display:block; margin-top:4px;">🔒 মেম্বাররা শুধুমাত্র নিজেদের নম্বর দিয়ে ঢুকতে পারবেন।</small>
         </div>
         <button class="btn btn-primary" style="width:100%; padding:12px;" onclick="doMemberLogin()">লগইন ও ড্যাশবোর্ডে প্রবেশ →</button>
       </div>
@@ -167,20 +167,19 @@
     </div>
   </div>
 
-  <!-- MAIN APPLICATION CONTAINER -->
+  <!-- MAIN APP CONTAINER -->
   <div class="app-container" id="appMainWrapper">
     <aside class="sidebar">
       <div class="sidebar-brand">
-        <div>
-          <h2>Our Home Community</h2>
-          <p style="font-size:11px; color:#94A3B8;">মেস ম্যানেজমেন্ট</p>
-        </div>
+        <h2>Our Home Community</h2>
+        <p style="font-size:11px; color:#94A3B8;">মেস ম্যানেজমেন্ট</p>
       </div>
       <ul class="sidebar-nav">
         <li><a class="active" id="nav-dashboard" onclick="showTab('dashboard')">ড্যাশবোর্ড</a></li>
         <li><a id="nav-shopping" onclick="showTab('shopping')">কেনাকাটা (Shopping)</a></li>
         <li id="sideNavMoney"><a id="nav-money" onclick="showTab('money')">জমা টাকা (Collection)</a></li>
         <li><a id="nav-members" onclick="showTab('members')">সদস্যবৃন্দ (Members)</a></li>
+        <li><a id="nav-bills" onclick="showTab('bills')">📑 মাসিক হিসাব ও PDF</a></li>
         <li id="sideNavSettings"><a id="nav-settings" onclick="showTab('settings')">সেটিংস (Settings)</a></li>
       </ul>
       <div style="margin-top:auto; padding-top:14px; border-top:1px solid rgba(255,255,255,0.1); font-size:12px; color:#94A3B8;">
@@ -220,6 +219,7 @@
           <div class="card">
             <div class="card-header">
               <h3 class="card-title">⏱️ আজকে পর্যন্ত মোট বিল (সদস্য অনুযায়ী লাইভ বিবরণী)</h3>
+              <button class="btn btn-secondary btn-sm" onclick="openMonthPdfModal('curr')">🖨️ পূর্ণাঙ্গ PDF স্টেটমেন্ট</button>
             </div>
             <div style="overflow-x:auto;">
               <table>
@@ -242,7 +242,7 @@
         <!-- SHOPPING TAB -->
         <div id="tab-shopping" style="display:none;">
           <div class="card-header">
-            <h3 class="card-title">🛒 কেনাকাটার পূর্ণাঙ্গ তালিকা</h3>
+            <h3 class="card-title">🛒 কেনাকাটার পূর্ণাঙ্গ তালিকা (Shopping List)</h3>
             <button class="btn btn-primary" onclick="openShopModal()">+ নতুন বাজার এন্ট্রি</button>
           </div>
           <div class="card" style="overflow-x:auto; padding:0;">
@@ -254,6 +254,7 @@
                   <th>বিবরণ</th>
                   <th>টাকার পরিমাণ</th>
                   <th>ক্রেতা</th>
+                  <th>ভাউচার / মেমো</th>
                   <th>অ্যাকশন</th>
                 </tr>
               </thead>
@@ -309,6 +310,38 @@
           </div>
         </div>
 
+        <!-- MONTHLY BILLS & ARCHIVES TAB -->
+        <div id="tab-bills" style="display:none;">
+          <div class="card-header">
+            <div>
+              <h3 class="card-title">📑 মাসিক হিসাব বিবরণী ও বিগত মাসের PDF আর্কাইভ</h3>
+              <p style="font-size:12px; color:var(--text-muted); margin-top:2px;">চলতি ও বিগত ২ মাসের রিপোর্ট দেখুন ও প্রিন্ট করুন</p>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="openMonthPdfModal('curr')">🖨️ চলতি মাসের পূর্ণাঙ্গ PDF</button>
+          </div>
+
+          <div class="card" style="margin-bottom:14px; border:1.5px solid #CBD5E1;">
+            <h4 style="font-size:14px; margin-bottom:10px;">📁 বিগত ২ মাসের অফিসিয়াল PDF আর্কাইভ</h4>
+            <div style="display:flex; flex-direction:column; gap:10px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; background:var(--surface-alt); padding:12px; border-radius:8px; border:1px solid var(--border);">
+                <div>
+                  <strong>সেপ্টেম্বর ২০২৬ (September 2026)</strong>
+                  <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">সর্বমোট খরচ: € 387.50 | ক্লোজড স্টেটমেন্ট</div>
+                </div>
+                <button class="btn btn-secondary btn-sm" onclick="openMonthPdfModal('2026-09')">📄 সেপ্টেম্বর PDF ভিউ / প্রিন্ট</button>
+              </div>
+
+              <div style="display:flex; justify-content:space-between; align-items:center; background:var(--surface-alt); padding:12px; border-radius:8px; border:1px solid var(--border);">
+                <div>
+                  <strong>আগস্ট ২০২৬ (August 2026)</strong>
+                  <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">সর্বমোট খরচ: € 348.00 | ক্লোজড স্টেটমেন্ট</div>
+                </div>
+                <button class="btn btn-secondary btn-sm" onclick="openMonthPdfModal('2026-08')">📄 আগস্ট PDF ভিউ / প্রিন্ট</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- SETTINGS TAB (ADMIN ONLY) -->
         <div id="tab-settings" style="display:none;">
           <div class="card" id="cardSettingsMain">
@@ -328,12 +361,13 @@
       </div>
     </main>
 
-    <!-- MOBILE NAV -->
+    <!-- MOBILE BOTTOM NAV -->
     <nav class="m-bottom-nav">
       <div class="m-item active" id="mNav-dashboard" onclick="showTab('dashboard')"><span>📊 হোম</span></div>
       <div class="m-item" id="mNav-shopping" onclick="showTab('shopping')"><span>🛒 বাজার</span></div>
       <div class="m-item" id="mNav-money" onclick="showTab('money')"><span>💰 জমা</span></div>
       <div class="m-item" id="mNav-members" onclick="showTab('members')"><span>👥 সদস্য</span></div>
+      <div class="m-item" id="mNav-bills" onclick="showTab('bills')"><span>📑 বিল PDF</span></div>
     </nav>
   </div>
 
@@ -345,517 +379,4 @@
         <button class="modal-close" onclick="closeModal('modalShop')">&times;</button>
       </div>
       <div class="form-group">
-        <label>খরচের ধরণ: *</label>
-        <select class="form-control" id="mShopType">
-          <option value="Food">খাবার বাজার (Food)</option>
-          <option value="General">কমন খরচ (General)</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>বিবরণ: *</label>
-        <input type="text" class="form-control" id="mShopItem" placeholder="যেমন: চাল, ডাল, তেল" required>
-      </div>
-      <div class="form-group">
-        <label>টাকার পরিমাণ: *</label>
-        <input type="number" step="any" class="form-control" id="mShopAmount" placeholder="যেমন: 50.00" required>
-      </div>
-      <div class="form-group">
-        <label>কে বাজার করেছে: *</label>
-        <select class="form-control" id="mShopShopper"></select>
-      </div>
-      <div style="display:flex; justify-content:flex-end; gap:8px;">
-        <button class="btn btn-secondary" onclick="closeModal('modalShop')">বাতিল</button>
-        <button class="btn btn-primary" onclick="submitShopping()">সংরক্ষণ করুন</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL: ADD PAYMENT -->
-  <div class="modal-overlay" id="modalPay">
-    <div class="modal-box">
-      <div class="modal-header">
-        <h3>💰 জমা টাকা রেকর্ড করুন (Admin Only)</h3>
-        <button class="modal-close" onclick="closeModal('modalPay')">&times;</button>
-      </div>
-      <div class="form-group">
-        <label>সদস্য নির্বাচন করুন: *</label>
-        <select class="form-control" id="mPayMember"></select>
-      </div>
-      <div class="form-group">
-        <label>জমা পরিমাণ: *</label>
-        <input type="number" step="any" class="form-control" id="mPayAmount" placeholder="যেমন: 100" required>
-      </div>
-      <div class="form-group">
-        <label>পদ্ধতি:</label>
-        <select class="form-control" id="mPayMethod">
-          <option value="Bank Transfer">Bank Transfer</option>
-          <option value="Cash">Cash</option>
-          <option value="bKash">bKash</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>রেফারেন্স / নোট:</label>
-        <input type="text" class="form-control" id="mPayRef" placeholder="যেমন: অক্টোবর ১ম কিস্তি">
-      </div>
-      <div style="display:flex; justify-content:flex-end; gap:8px;">
-        <button class="btn btn-secondary" onclick="closeModal('modalPay')">বাতিল</button>
-        <button class="btn btn-primary" onclick="submitPayment()">জমা করুন</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL: ADD MEMBER (ADMIN ONLY) -->
-  <div class="modal-overlay" id="modalMember">
-    <div class="modal-box">
-      <div class="modal-header">
-        <h3>👥 নতুন সদস্য যোগ করুন (Admin Only)</h3>
-        <button class="modal-close" onclick="closeModal('modalMember')">&times;</button>
-      </div>
-      <div class="form-group">
-        <label>সদস্যের নাম: *</label>
-        <input type="text" class="form-control" id="mMemName" placeholder="যেমন: তানভীর" required>
-      </div>
-      <div class="form-group">
-        <label>লগইন মোবাইল নম্বর: *</label>
-        <input type="tel" class="form-control" id="mMemPhone" placeholder="01711000001" required>
-      </div>
-      <div class="form-group">
-        <label>রোল:</label>
-        <select class="form-control" id="mMemRole">
-          <option value="MEMBER">MEMBER (সাধারণ সদস্য)</option>
-          <option value="ADMIN">ADMIN (অ্যাডমিন)</option>
-        </select>
-      </div>
-      <div style="display:flex; justify-content:flex-end; gap:8px;">
-        <button class="btn btn-secondary" onclick="closeModal('modalMember')">বাতিল</button>
-        <button class="btn btn-primary" onclick="submitMember()">সংরক্ষণ করুন</button>
-      </div>
-    </div>
-  </div>
-
-  <div id="appToast" class="toast"></div>
-
-  <!-- MAIN APPLICATION LOGIC -->
-  <script>
-    let ADMIN_SECRET_PIN = "123456";
-    let currentUser = null; // No auto-login! User must login explicitly.
-
-    let appData = {
-      messName: "Our Home Community",
-      members: [
-        { id: "m1", name: "মাহি (Mahi)", phone: "01308650721", role: "ADMIN" },
-        { id: "m2", name: "রহিম (Rahim)", phone: "01711000001", role: "MEMBER" },
-        { id: "m3", name: "করিম (Karim)", phone: "01711000002", role: "MEMBER" }
-      ],
-      shopping: [
-        { id: "SHOP-1", date: "2026-10-01", type: "Food", item: "চাল ও তেল", amount: 45.00, shopper: "মাহি (Mahi)" }
-      ],
-      payments: [
-        { id: "PAY-1", date: "2026-10-01", memberId: "m1", member: "মাহি (Mahi)", amount: 80, method: "Cash", ref: "অগ্রিম" }
-      ]
-    };
-
-    function showToast(msg) {
-      const t = document.getElementById("appToast");
-      t.textContent = msg;
-      t.style.display = "block";
-      setTimeout(() => { t.style.display = "none"; }, 3000);
-    }
-
-    function formatMoney(n) {
-      return `€ ${(parseFloat(n) || 0).toFixed(2)}`;
-    }
-
-    function cleanPhone(p) {
-      return String(p || "").replace(/[\s\-\(\)\+]/g, "");
-    }
-
-    // FIREBASE REALTIME CLOUD SYNC
-    const FIRESTORE_DOC_ID = "MSS-JALALABAD";
-
-    function initFirebaseSync() {
-      if (!window.firestoreDb || !window.firestoreTools) {
-        setTimeout(initFirebaseSync, 300);
-        return;
-      }
-      const { doc, onSnapshot } = window.firestoreTools;
-      const docRef = doc(window.firestoreDb, "messes_data", FIRESTORE_DOC_ID);
-
-      onSnapshot(docRef, (docSnap) => {
-        if (docSnap.exists()) {
-          appData = docSnap.data();
-          localStorage.setItem("OUR_APARTMENT_DB", JSON.stringify(appData));
-          if (currentUser) {
-            updateUserDisplay();
-            renderAll();
-          }
-        } else {
-          saveState();
-        }
-      }, (err) => console.error("Firebase Sync error:", err));
-    }
-
-    function saveState() {
-      localStorage.setItem("OUR_APARTMENT_DB", JSON.stringify(appData));
-      if (window.firestoreDb && window.firestoreTools) {
-        const { doc, setDoc } = window.firestoreTools;
-        setDoc(doc(window.firestoreDb, "messes_data", FIRESTORE_DOC_ID), appData).catch(e => console.error(e));
-      }
-    }
-
-    function calculate() {
-      let foodTotal = 0, genTotal = 0, paidTotal = 0;
-      let memberStats = {};
-
-      appData.members.forEach(m => {
-        memberStats[m.id] = { id: m.id, name: m.name, role: m.role, food: 0, general: 0, bill: 0, paid: 0, due: 0, overpaid: 0 };
-      });
-
-      const mCount = appData.members.length || 1;
-
-      appData.shopping.forEach(s => {
-        const amt = parseFloat(s.amount) || 0;
-        if (s.type === "Food") {
-          foodTotal += amt;
-          appData.members.forEach(m => { if (memberStats[m.id]) memberStats[m.id].food += (amt / mCount); });
-        } else {
-          genTotal += amt;
-          appData.members.forEach(m => { if (memberStats[m.id]) memberStats[m.id].general += (amt / mCount); });
-        }
-      });
-
-      appData.payments.forEach(p => {
-        const amt = parseFloat(p.amount) || 0;
-        paidTotal += amt;
-        if (memberStats[p.memberId]) memberStats[p.memberId].paid += amt;
-      });
-
-      Object.values(memberStats).forEach(m => {
-        m.bill = m.food + m.general;
-        if (m.paid >= m.bill) {
-          m.overpaid = m.paid - m.bill;
-          m.due = 0;
-        } else {
-          m.due = m.bill - m.paid;
-          m.overpaid = 0;
-        }
-      });
-
-      const grandTotal = foodTotal + genTotal;
-      const cashInHand = paidTotal - grandTotal;
-      return { foodTotal, genTotal, grandTotal, paidTotal, cashInHand, memberStats };
-    }
-
-    function renderAll() {
-      const c = calculate();
-      document.getElementById("dFood").textContent = formatMoney(c.foodTotal);
-      document.getElementById("dGen").textContent = formatMoney(c.genTotal);
-      document.getElementById("dTotal").textContent = formatMoney(c.grandTotal);
-      document.getElementById("dPaid").textContent = formatMoney(c.paidTotal);
-      document.getElementById("dCash").textContent = formatMoney(c.cashInHand);
-
-      // Dash Table
-      document.getElementById("dashTillTodayTableBody").innerHTML = Object.values(c.memberStats).map(m => `
-        <tr>
-          <td><strong>${m.name}</strong></td>
-          <td>${formatMoney(m.food)}</td>
-          <td>${formatMoney(m.general)}</td>
-          <td><strong style="color:#059669;">${formatMoney(m.bill)}</strong></td>
-          <td>${formatMoney(m.paid)}</td>
-          <td>${m.due > 0 ? `<span class="badge badge-due">বকেয়া ${formatMoney(m.due)}</span>` : `<span class="badge badge-overpaid">উদ্বৃত্ত ${formatMoney(m.overpaid)}</span>`}</td>
-        </tr>
-      `).join("");
-
-      // Shopping Table
-      const isAdmin = (currentUser && currentUser.role === "ADMIN");
-      document.getElementById("shopTableBody").innerHTML = appData.shopping.map(s => `
-        <tr>
-          <td>${s.date}</td>
-          <td><span class="badge ${s.type === 'Food' ? 'badge-food' : 'badge-general'}">${s.type === 'Food' ? 'খাবার' : 'কমন'}</span></td>
-          <td><strong>${s.item}</strong></td>
-          <td>${formatMoney(s.amount)}</td>
-          <td>${s.shopper}</td>
-          <td>${isAdmin ? `<button class="btn btn-danger btn-sm" onclick="deleteShopping('${s.id}')">মুছুন</button>` : '-'}</td>
-        </tr>
-      `).join("") || `<tr><td colspan="6" style="text-align:center;">কোনো এন্ট্রি নেই</td></tr>`;
-
-      // Payment Table
-      document.getElementById("payTableBody").innerHTML = appData.payments.map(p => `
-        <tr>
-          <td>${p.date}</td>
-          <td><strong>${p.member}</strong></td>
-          <td>${formatMoney(p.amount)}</td>
-          <td>${p.method}</td>
-          <td>${p.ref || '-'}</td>
-          <td>${isAdmin ? `<button class="btn btn-danger btn-sm" onclick="deletePayment('${p.id}')">মুছুন</button>` : '-'}</td>
-        </tr>
-      `).join("") || `<tr><td colspan="6" style="text-align:center;">কোনো জমা নেই</td></tr>`;
-
-      // Members Table
-      document.getElementById("memTableBody").innerHTML = appData.members.map(m => {
-        const stat = c.memberStats[m.id] || { bill: 0, paid: 0, due: 0, overpaid: 0 };
-        return `
-          <tr>
-            <td><strong>${m.name}</strong></td>
-            <td><code>${m.phone}</code></td>
-            <td><span class="badge ${m.role === 'ADMIN' ? 'badge-food' : ''}">${m.role}</span></td>
-            <td>${formatMoney(stat.bill)}</td>
-            <td>${formatMoney(stat.paid)}</td>
-            <td>${stat.due > 0 ? `<span class="badge badge-due">বকেয়া ${formatMoney(stat.due)}</span>` : `<span class="badge badge-overpaid">উদ্বৃত্ত ${formatMoney(stat.overpaid)}</span>`}</td>
-            <td>${isAdmin ? `<button class="btn btn-danger btn-sm" onclick="deleteMember('${m.id}')">মুছুন</button>` : '-'}</td>
-          </tr>
-        `;
-      }).join("");
-
-      if (document.getElementById("setAptName")) document.getElementById("setAptName").value = appData.messName || "Our Home Community";
-      if (document.getElementById("setAdminPin")) document.getElementById("setAdminPin").value = ADMIN_SECRET_PIN;
-    }
-
-    // RESTRICT ACCESS BASED ON LOGGED-IN ROLE
-    function updateUserDisplay() {
-      if (!currentUser) return;
-      const isAdmin = (currentUser.role === "ADMIN");
-
-      // Set titles
-      document.getElementById("sideUserName").textContent = currentUser.name;
-      const topBadge = document.getElementById("topRoleBadge");
-      topBadge.textContent = `${currentUser.role} (${currentUser.name})`;
-      topBadge.className = isAdmin ? "role-badge admin" : "role-badge member";
-
-      // Member Add Button: ONLY visible to Admin
-      const btnAddMem = document.getElementById("btnAddMemberBtn");
-      if (btnAddMem) btnAddMem.style.display = isAdmin ? "inline-block" : "none";
-
-      // Collection Money Button on dashboard & money tab
-      const btnDashMoney = document.getElementById("btnDashMoneyAction");
-      if (btnDashMoney) btnDashMoney.style.display = isAdmin ? "flex" : "none";
-      const btnMoneyAddTop = document.getElementById("btnMoneyAddTop");
-      if (btnMoneyAddTop) btnMoneyAddTop.style.display = isAdmin ? "inline-block" : "none";
-
-      // Settings Navigation & Tab: ONLY visible to Admin
-      const sideNavSettings = document.getElementById("sideNavSettings");
-      if (sideNavSettings) sideNavSettings.style.display = isAdmin ? "block" : "none";
-      const cardSettings = document.getElementById("cardSettingsMain");
-      if (cardSettings) cardSettings.style.display = isAdmin ? "block" : "none";
-    }
-
-    function switchLoginMode(mode) {
-      document.getElementById("tabMemberBtn").classList.toggle("active", mode === "MEMBER");
-      document.getElementById("tabAdminBtn").classList.toggle("active", mode === "ADMIN");
-      document.getElementById("loginMemberForm").style.display = (mode === "MEMBER") ? "block" : "none";
-      document.getElementById("loginAdminForm").style.display = (mode === "ADMIN") ? "block" : "none";
-      document.getElementById("loginAlert").style.display = "none";
-    }
-
-    // MEMBER LOGIN (BY PHONE NUMBER ONLY)
-    function doMemberLogin() {
-      const p = cleanPhone(document.getElementById("loginPhoneInput").value);
-      const found = appData.members.find(m => cleanPhone(m.phone) === p);
-      if (found) {
-        currentUser = { id: found.id, name: found.name, phone: found.phone, role: "MEMBER" };
-        localStorage.setItem("OUR_LOGGED_USER", JSON.stringify(currentUser));
-        
-        document.getElementById("loginScreen").style.display = "none";
-        document.getElementById("appMainWrapper").style.display = "flex";
-        
-        updateUserDisplay();
-        renderAll();
-        showToast(`স্বাগতম, ${found.name}!`);
-      } else {
-        const a = document.getElementById("loginAlert");
-        a.textContent = "❌ এই মোবাইল নম্বরে কোনো মেম্বার পাওয়া যায়নি! অ্যাডমিনের সাথে যোগাযোগ করুন।";
-        a.style.display = "block";
-      }
-    }
-
-    // ADMIN LOGIN (BY SECRET PIN ONLY)
-    function doAdminLogin() {
-      const pin = document.getElementById("adminPinInput").value.trim();
-      if (pin === ADMIN_SECRET_PIN) {
-        currentUser = { id: "admin", name: "মাহি (Admin)", phone: "01308650721", role: "ADMIN" };
-        localStorage.setItem("OUR_LOGGED_USER", JSON.stringify(currentUser));
-
-        document.getElementById("loginScreen").style.display = "none";
-        document.getElementById("appMainWrapper").style.display = "flex";
-
-        updateUserDisplay();
-        renderAll();
-        showToast("অ্যাডমিন হিসেবে সফল লগইন হয়েছে!");
-      } else {
-        const a = document.getElementById("loginAlert");
-        a.textContent = "❌ ভুল অ্যাডমিন পিন! মেম্বাররা মেম্বার ট্যাবে লগইন করুন।";
-        a.style.display = "block";
-      }
-    }
-
-    function doLogout() {
-      localStorage.removeItem("OUR_LOGGED_USER");
-      currentUser = null;
-      document.getElementById("appMainWrapper").style.display = "none";
-      document.getElementById("loginScreen").style.display = "flex";
-      switchLoginMode("MEMBER");
-      showToast("লগআউট সম্পন্ন হয়েছে।");
-    }
-
-    function showTab(tabId) {
-      // Prevent members from accessing settings
-      if (tabId === "settings" && (!currentUser || currentUser.role !== "ADMIN")) {
-        alert("শুধুমাত্র অ্যাডমিন সেটিংস অ্যাক্সেস করতে পারেন!");
-        return;
-      }
-      document.querySelectorAll("[id^='tab-']").forEach(t => t.style.display = "none");
-      document.getElementById("tab-" + tabId).style.display = "block";
-      document.querySelectorAll(".sidebar-nav a, .m-bottom-nav .m-item").forEach(a => a.classList.remove("active"));
-      if (document.getElementById("nav-" + tabId)) document.getElementById("nav-" + tabId).classList.add("active");
-      if (document.getElementById("mNav-" + tabId)) document.getElementById("mNav-" + tabId).classList.add("active");
-    }
-
-    function openShopModal() {
-      const select = document.getElementById("mShopShopper");
-      const isAdmin = (currentUser && currentUser.role === "ADMIN");
-
-      if (isAdmin) {
-        select.innerHTML = appData.members.map(m => `<option value="${m.name}">👤 ${m.name}</option>`).join("");
-        select.disabled = false;
-      } else {
-        // Members can ONLY submit by their own name
-        select.innerHTML = `<option value="${currentUser.name}">👤 ${currentUser.name}</option>`;
-        select.disabled = true;
-      }
-
-      document.getElementById("mShopItem").value = "";
-      document.getElementById("mShopAmount").value = "";
-      document.getElementById("modalShop").classList.add("active");
-    }
-
-    function submitShopping() {
-      const item = document.getElementById("mShopItem").value.trim();
-      const amount = parseFloat(document.getElementById("mShopAmount").value);
-      const type = document.getElementById("mShopType").value;
-      const shopper = currentUser.role === "ADMIN" ? document.getElementById("mShopShopper").value : currentUser.name;
-
-      if (!item || !amount) return alert("সব ঘর সঠিকভাবে পূরণ করুন!");
-
-      appData.shopping.unshift({ id: "SHOP-" + Date.now(), date: new Date().toISOString().substring(0, 10), type, item, amount, shopper });
-      saveState();
-      renderAll();
-      closeModal("modalShop");
-      showToast("🛒 বাজার লাইভ সেভ হয়েছে!");
-    }
-
-    function deleteShopping(id) {
-      if (!currentUser || currentUser.role !== "ADMIN") return alert("শুধুমাত্র অ্যাডমিন মুছতে পারেন!");
-      if (confirm("মুছে ফেলতে চান?")) {
-        appData.shopping = appData.shopping.filter(s => s.id !== id);
-        saveState();
-        renderAll();
-        showToast("মুছে ফেলা হয়েছে!");
-      }
-    }
-
-    function handleMoneyClick() {
-      if (!currentUser || currentUser.role !== "ADMIN") return alert("শুধুমাত্র অ্যাডমিন টাকা জমা রেকর্ড করতে পারেন!");
-      document.getElementById("mPayMember").innerHTML = appData.members.map(m => `<option value="${m.id}|${m.name}">👤 ${m.name}</option>`).join("");
-      document.getElementById("modalPay").classList.add("active");
-    }
-
-    function submitPayment() {
-      if (!currentUser || currentUser.role !== "ADMIN") return alert("শুধুমাত্র অ্যাডমিন জমা দিতে পারেন!");
-      const [mId, mName] = document.getElementById("mPayMember").value.split("|");
-      const amount = parseFloat(document.getElementById("mPayAmount").value);
-      const method = document.getElementById("mPayMethod").value;
-      const ref = document.getElementById("mPayRef").value.trim();
-
-      if (!amount) return alert("টাকার পরিমাণ দিন!");
-
-      appData.payments.unshift({ id: "PAY-" + Date.now(), date: new Date().toISOString().substring(0, 10), memberId: mId, member: mName, amount, method, ref });
-      saveState();
-      renderAll();
-      closeModal("modalPay");
-      showToast("💰 জমা লাইভ রেকর্ড হয়েছে!");
-    }
-
-    function deletePayment(id) {
-      if (!currentUser || currentUser.role !== "ADMIN") return alert("শুধুমাত্র অ্যাডমিন মুছতে পারেন!");
-      if (confirm("মুছবেন?")) {
-        appData.payments = appData.payments.filter(p => p.id !== id);
-        saveState();
-        renderAll();
-        showToast("মুছে ফেলা হয়েছে!");
-      }
-    }
-
-    function openAddMemberModal() {
-      if (!currentUser || currentUser.role !== "ADMIN") return alert("শুধুমাত্র অ্যাডমিন নতুন সদস্য যোগ করতে পারেন!");
-      document.getElementById("mMemName").value = "";
-      document.getElementById("mMemPhone").value = "";
-      document.getElementById("modalMember").classList.add("active");
-    }
-
-    function submitMember() {
-      if (!currentUser || currentUser.role !== "ADMIN") return alert("শুধুমাত্র অ্যাডমিন সদস্য যোগ করতে পারেন!");
-      const name = document.getElementById("mMemName").value.trim();
-      const phone = document.getElementById("mMemPhone").value.trim();
-      const role = document.getElementById("mMemRole").value;
-
-      if (!name || !phone) return alert("নাম ও ফোন নম্বর দিন!");
-
-      appData.members.push({ id: "m_" + Date.now(), name, phone, role });
-      saveState();
-      renderAll();
-      closeModal("modalMember");
-      showToast("নতুন সদস্য যুক্ত হয়েছে!");
-    }
-
-    function deleteMember(id) {
-      if (!currentUser || currentUser.role !== "ADMIN") return alert("শুধুমাত্র অ্যাডমিন সদস্য মুছতে পারেন!");
-      if (confirm("সদস্য মুছে দিতে চান?")) {
-        appData.members = appData.members.filter(m => m.id !== id);
-        saveState();
-        renderAll();
-      }
-    }
-
-    function submitSaveGeneralSettings() {
-      if (!currentUser || currentUser.role !== "ADMIN") return alert("শুধুমাত্র অ্যাডমিন সেটিংস পরিবর্তন করতে পারেন!");
-      appData.messName = document.getElementById("setAptName").value.trim();
-      ADMIN_SECRET_PIN = document.getElementById("setAdminPin").value.trim();
-      saveState();
-      renderAll();
-      showToast("সেটিংস সংরক্ষিত হয়েছে!");
-    }
-
-    function closeModal(id) { document.getElementById(id).classList.remove("active"); }
-
-    window.onload = function() {
-      const saved = localStorage.getItem("OUR_APARTMENT_DB");
-      if (saved) {
-        try { appData = JSON.parse(saved); } catch (e) {}
-      }
-
-      // Check if user previously logged in
-      const savedUser = localStorage.getItem("OUR_LOGGED_USER");
-      if (savedUser) {
-        try {
-          currentUser = JSON.parse(savedUser);
-          document.getElementById("loginScreen").style.display = "none";
-          document.getElementById("appMainWrapper").style.display = "flex";
-          updateUserDisplay();
-          renderAll();
-        } catch (e) {
-          currentUser = null;
-        }
-      }
-
-      // If not logged in, enforce login screen
-      if (!currentUser) {
-        document.getElementById("appMainWrapper").style.display = "none";
-        document.getElementById("loginScreen").style.display = "flex";
-        switchLoginMode("MEMBER");
-      }
-
-      initFirebaseSync();
-    };
-  </script>
-</body>
-</html>
+        <label>খরচের ধরণ:
