@@ -103,6 +103,7 @@
     .badge { padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; display: inline-block; }
     .badge-food { background: #E0E7FF; color: #4338CA; }
     .badge-general { background: #FEF3C7; color: #B45309; }
+    .badge-both { background: #DCFCE7; color: #166534; }
     .badge-due { background: #FEE2E2; color: #DC2626; }
     .badge-overpaid { background: #D1FAE5; color: #059669; }
 
@@ -227,6 +228,7 @@
                 <thead>
                   <tr>
                     <th>সদস্যের নাম</th>
+                    <th>ধরণ (Type)</th>
                     <th>খাবার বিল</th>
                     <th>কমন বিল</th>
                     <th>আজ পর্যন্ত মোট বিল</th>
@@ -251,9 +253,10 @@
               <thead>
                 <tr>
                   <th>তারিখ</th>
-                  <th>ধরণ</th>
+                  <th>ধরণ (Type)</th>
                   <th>বিবরণ</th>
                   <th>টাকার পরিমাণ</th>
+                  <th>ভাগীদার সদস্য</th>
                   <th>ক্রেতা</th>
                   <th>ভাউচার / মেমো</th>
                   <th>অ্যাকশন</th>
@@ -290,7 +293,7 @@
         <!-- MEMBERS TAB -->
         <div id="tab-members" style="display:none;">
           <div class="card-header">
-            <h3 class="card-title">👥 সদস্য ব্যবস্থাপনা</h3>
+            <h3 class="card-title">👥 সদস্য ব্যবস্থাপনা (Member Types & Status)</h3>
             <button class="btn btn-primary" id="btnAddMemberBtn" style="display:none;" onclick="openAddMemberModal()">+ নতুন সদস্য যোগ করুন (Admin)</button>
           </div>
           <div class="card" style="overflow-x:auto; padding:0;">
@@ -298,8 +301,11 @@
               <thead>
                 <tr>
                   <th>নাম</th>
-                  <th>লগইন নম্বর</th>
+                  <th>মোবাইল নম্বর</th>
                   <th>রোল</th>
+                  <th>কন্ট্রিবিউশন ধরণ</th>
+                  <th>খাবার বিল</th>
+                  <th>কমন বিল</th>
                   <th>মোট বিল</th>
                   <th>জমা</th>
                   <th>বর্তমান ব্যালেন্স</th>
@@ -372,7 +378,7 @@
     </nav>
   </div>
 
-  <!-- MODAL: ADD SHOPPING -->
+  <!-- MODAL: ADD / EDIT SHOPPING -->
   <div class="modal-overlay" id="modalShop">
     <div class="modal-box">
       <div class="modal-header">
@@ -380,15 +386,15 @@
         <button class="modal-close" onclick="closeModal('modalShop')">&times;</button>
       </div>
       <div class="form-group">
-        <label>খরচের ধরণ: *</label>
+        <label>বাজারের ধরণ (Expense Type): *</label>
         <select class="form-control" id="mShopType">
-          <option value="Food">খাবার বাজার (Food)</option>
-          <option value="General">কমন খরচ (General)</option>
+          <option value="Food">🍲 Food Shopping (খাবার বাজার - শুধুমাত্র Both সদস্যের ভাগ)</option>
+          <option value="General">🧼 General Shopping (কমন বাজার - সকল সদস্যের ভাগ)</option>
         </select>
       </div>
       <div class="form-group">
         <label>বিবরণ: *</label>
-        <input type="text" class="form-control" id="mShopItem" placeholder="যেমন: চাল, ডাল, তেল" required>
+        <input type="text" class="form-control" id="mShopItem" placeholder="যেমন: চাল, ডাল, তেল বা টিস্যু" required>
       </div>
       <div class="form-group">
         <label>টাকার পরিমাণ: *</label>
@@ -482,46 +488,60 @@
     </div>
   </div>
 
-  <!-- MODAL: ADD MEMBER -->
+  <!-- MODAL: ADD / EDIT MEMBER (WITH MEMBER TYPE SELECTION) -->
   <div class="modal-overlay" id="modalMember">
     <div class="modal-box">
       <div class="modal-header">
-        <h3>👥 নতুন সদস্য যোগ করুন (Admin Only)</h3>
+        <h3 id="modalMemberHeading">👥 সদস্য তথ্য (Admin Only)</h3>
         <button class="modal-close" onclick="closeModal('modalMember')">&times;</button>
       </div>
+      <input type="hidden" id="editMemberId">
       <div class="form-group">
         <label>সদস্যের নাম: *</label>
-        <input type="text" class="form-control" id="mMemName" placeholder="যেমন: তানভীর" required>
+        <input type="text" class="form-control" id="mMemName" placeholder="যেমন: তানভীর আহমেদ" required>
       </div>
       <div class="form-group">
         <label>লগইন মোবাইল নম্বর: *</label>
         <input type="tel" class="form-control" id="mMemPhone" placeholder="01711000001" required>
       </div>
       <div class="form-group">
-        <label>রোল:</label>
+        <label>রোল (Role):</label>
         <select class="form-control" id="mMemRole">
           <option value="MEMBER">MEMBER (সাধারণ সদস্য)</option>
           <option value="ADMIN">ADMIN (অ্যাডমিন)</option>
         </select>
       </div>
-      <div style="display:flex; justify-content:flex-end; gap:8px;">
+
+      <!-- MEMBER CONTRIBUTION TYPE SELECTION -->
+      <div class="form-group" style="background:var(--surface-alt); padding:10px 12px; border-radius:6px; border:1px solid #CBD5E1;">
+        <label style="color:#0F172A; margin-bottom:6px;">কন্ট্রিবিউশন ধরণ (Member Contribution Type): *</label>
+        <select class="form-control" id="mMemContributionType">
+          <option value="BOTH">🍲 + 🧼 Food and General (উভয় খরচেই অংশ নেবেন)</option>
+          <option value="GENERAL_ONLY">🧼 General Only (শুধুমাত্র কমন খরচ, খাবারে কোনো অংশ নেই)</option>
+        </select>
+        <small style="color:var(--text-muted); display:block; margin-top:4px;">
+          💡 <em>General Only দিলে খাবার বাজার থেকে এই সদস্য বাদ থাকবেন এবং উনার খাবার বিল হবে ০.০০।</em>
+        </small>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
         <button class="btn btn-secondary" onclick="closeModal('modalMember')">বাতিল</button>
         <button class="btn btn-primary" onclick="submitMember()">সংরক্ষণ করুন</button>
       </div>
     </div>
   </div>
 
-  <!-- MODAL: PDF STATEMENT -->
+  <!-- MODAL: COMPREHENSIVE PDF DOWNLOAD -->
   <div class="modal-overlay" id="modalMonthlyPdf">
     <div class="modal-box" style="max-width:750px;">
       <div class="modal-header">
-        <h3 id="modalPdfMonthTitle">📄 অফিশিয়াল মাসিক বিল স্টেটমেন্ট</h3>
+        <h3 id="modalPdfMonthTitle">📄 অফিশিয়াল মাসিক বিল স্টেটমেন্ট (PDF)</h3>
         <button class="modal-close" onclick="closeModal('modalMonthlyPdf')">&times;</button>
       </div>
       <div id="printablePdfContent" style="background:#fff; border:1px solid #CBD5E1; border-radius:6px; padding:20px;">
         <div style="text-align:center; border-bottom:2px solid #0F172A; padding-bottom:12px; margin-bottom:16px;">
           <h2 style="font-size:20px; color:#0F172A;">OUR HOME COMMUNITY</h2>
-          <p style="font-size:12px; color:#64748B;">Official Monthly Statement</p>
+          <p style="font-size:12px; color:#64748B;">Official Monthly Mess & Flat Expense Statement</p>
           <div id="pdfMonthBadge" style="display:inline-block; background:#0F172A; color:#fff; font-size:12px; font-weight:700; padding:3px 12px; border-radius:12px; margin-top:6px;">মাস</div>
         </div>
         
@@ -536,6 +556,7 @@
           <thead>
             <tr style="background:#0F172A; color:#fff;">
               <th style="padding:8px; color:#fff;">সদস্য</th>
+              <th style="padding:8px; color:#fff; text-align:center;">ধরণ</th>
               <th style="padding:8px; color:#fff; text-align:center;">খাবার বিল</th>
               <th style="padding:8px; color:#fff; text-align:center;">কমন বিল</th>
               <th style="padding:8px; color:#fff; text-align:center;">মোট বিল</th>
@@ -585,11 +606,11 @@
     let appData = {
       messName: "Our Home Community",
       members: [
-        { id: "m1", name: "মাহি (Mahi)", phone: "01308650721", role: "ADMIN" },
-        { id: "m2", name: "রহিম (Rahim)", phone: "01711000001", role: "MEMBER" },
-        { id: "m3", name: "করিম (Karim)", phone: "01711000002", role: "MEMBER" },
-        { id: "m4", name: "হাসান (Hasan)", phone: "01711000003", role: "MEMBER" },
-        { id: "m5", name: "তানভীর (Tanvir)", phone: "01711000004", role: "MEMBER" }
+        { id: "m1", name: "মাহি (Mahi)", phone: "01308650721", role: "ADMIN", contributionType: "BOTH" },
+        { id: "m2", name: "রহিম (Rahim)", phone: "01711000001", role: "MEMBER", contributionType: "BOTH" },
+        { id: "m3", name: "করিম (Karim)", phone: "01711000002", role: "MEMBER", contributionType: "BOTH" },
+        { id: "m4", name: "হাসান (Hasan)", phone: "01711000003", role: "MEMBER", contributionType: "GENERAL_ONLY" },
+        { id: "m5", name: "তানভীর (Tanvir)", phone: "01711000004", role: "MEMBER", contributionType: "BOTH" }
       ],
       shopping: [
         { id: "SHOP-1", date: "2026-10-01", type: "Food", item: "চাল, ডাল ও তেল", amount: 65.50, shopper: "মাহি (Mahi)", voucher: null },
@@ -606,11 +627,11 @@
         name: "সেপ্টেম্বর ২০২৬ (September 2026)",
         foodTotal: 345.50, genTotal: 42.00, grandTotal: 387.50, paidTotal: 390.00,
         members: [
-          { name: "মাহি (Mahi)", food: 69.10, general: 8.40, bill: 77.50, paid: 80.00, due: 0, overpaid: 2.50 },
-          { name: "রহিম (Rahim)", food: 69.10, general: 8.40, bill: 77.50, paid: 80.00, due: 0, overpaid: 2.50 },
-          { name: "করিম (Karim)", food: 69.10, general: 8.40, bill: 77.50, paid: 75.00, due: 2.50, overpaid: 0 },
-          { name: "হাসান (Hasan)", food: 69.10, general: 8.40, bill: 77.50, paid: 77.50, due: 0, overpaid: 0 },
-          { name: "তানভীর (Tanvir)", food: 69.10, general: 8.40, bill: 77.50, paid: 77.50, due: 0, overpaid: 0 }
+          { name: "মাহি (Mahi)", type: "BOTH", food: 86.38, general: 8.40, bill: 94.78, paid: 95.00, due: 0, overpaid: 0.22 },
+          { name: "রহিম (Rahim)", type: "BOTH", food: 86.38, general: 8.40, bill: 94.78, paid: 95.00, due: 0, overpaid: 0.22 },
+          { name: "করিম (Karim)", type: "BOTH", food: 86.38, general: 8.40, bill: 94.78, paid: 90.00, due: 4.78, overpaid: 0 },
+          { name: "হাসান (Hasan)", type: "GENERAL_ONLY", food: 0.00, general: 8.40, bill: 8.40, paid: 10.00, due: 0, overpaid: 1.60 },
+          { name: "তানভীর (Tanvir)", type: "BOTH", food: 86.38, general: 8.40, bill: 94.78, paid: 100.00, due: 0, overpaid: 5.22 }
         ],
         shopping: [
           { id: "SHOP-SEP-1", date: "2026-09-02", type: "Food", item: "চাল ও মসলা", amount: 85.00, shopper: "মাহি (Mahi)" },
@@ -623,11 +644,11 @@
         name: "আগস্ট ২০২৬ (August 2026)",
         foodTotal: 310.00, genTotal: 38.00, grandTotal: 348.00, paidTotal: 350.00,
         members: [
-          { name: "মাহি (Mahi)", food: 62.00, general: 7.60, bill: 69.60, paid: 70.00, due: 0, overpaid: 0.40 },
-          { name: "রহিম (Rahim)", food: 62.00, general: 7.60, bill: 69.60, paid: 70.00, due: 0, overpaid: 0.40 },
-          { name: "করিম (Karim)", food: 62.00, general: 7.60, bill: 69.60, paid: 70.00, due: 0, overpaid: 0.40 },
-          { name: "হাসান (Hasan)", food: 62.00, general: 7.60, bill: 69.60, paid: 70.00, due: 0, overpaid: 0.40 },
-          { name: "তানভীর (Tanvir)", food: 62.00, general: 7.60, bill: 69.60, paid: 70.00, due: 0, overpaid: 0.40 }
+          { name: "মাহি (Mahi)", type: "BOTH", food: 77.50, general: 7.60, bill: 85.10, paid: 86.00, due: 0, overpaid: 0.90 },
+          { name: "রহিম (Rahim)", type: "BOTH", food: 77.50, general: 7.60, bill: 85.10, paid: 86.00, due: 0, overpaid: 0.90 },
+          { name: "করিম (Karim)", type: "BOTH", food: 77.50, general: 7.60, bill: 85.10, paid: 85.10, due: 0, overpaid: 0 },
+          { name: "হাসান (Hasan)", type: "GENERAL_ONLY", food: 0.00, general: 7.60, bill: 7.60, paid: 10.00, due: 0, overpaid: 2.40 },
+          { name: "তানভীর (Tanvir)", type: "BOTH", food: 77.50, general: 7.60, bill: 85.10, paid: 82.90, due: 2.20, overpaid: 0 }
         ],
         shopping: [
           { id: "SHOP-AUG-1", date: "2026-08-04", type: "Food", item: "চাল ও তেল", amount: 75.00, shopper: "মাহি (Mahi)" },
@@ -661,7 +682,6 @@
       onSnapshot(docRef, (docSnap) => {
         if (docSnap.exists()) {
           appData = docSnap.data();
-          localStorage.setItem("OUR_APARTMENT_DB", JSON.stringify(appData));
           if (currentUser) {
             updateUserDisplay();
             renderAll();
@@ -673,31 +693,54 @@
     }
 
     function saveState() {
-      localStorage.setItem("OUR_APARTMENT_DB", JSON.stringify(appData));
       if (window.firestoreDb && window.firestoreTools) {
         const { doc, setDoc } = window.firestoreTools;
         setDoc(doc(window.firestoreDb, "messes_data", FIRESTORE_DOC_ID), appData).catch(e => console.error(e));
       }
     }
 
+    // ACCURATE CORE CALCULATION ENGINE
     function calculate() {
       let foodTotal = 0, genTotal = 0, paidTotal = 0;
       let memberStats = {};
 
       appData.members.forEach(m => {
-        memberStats[m.id] = { id: m.id, name: m.name, role: m.role, food: 0, general: 0, bill: 0, paid: 0, due: 0, overpaid: 0 };
+        const cType = m.contributionType || "BOTH";
+        memberStats[m.id] = {
+          id: m.id,
+          name: m.name,
+          role: m.role,
+          contributionType: cType,
+          food: 0,
+          general: 0,
+          bill: 0,
+          paid: 0,
+          due: 0,
+          overpaid: 0
+        };
       });
 
-      const mCount = appData.members.length || 1;
+      // Filter members who participate in food (Only BOTH type)
+      const foodEligibleMembers = appData.members.filter(m => (m.contributionType || "BOTH") === "BOTH");
+      const foodCount = foodEligibleMembers.length || 1;
+
+      // All members participate in General shopping
+      const generalCount = appData.members.length || 1;
 
       appData.shopping.forEach(s => {
         const amt = parseFloat(s.amount) || 0;
         if (s.type === "Food") {
           foodTotal += amt;
-          appData.members.forEach(m => { if (memberStats[m.id]) memberStats[m.id].food += (amt / mCount); });
+          const share = amt / foodCount;
+          foodEligibleMembers.forEach(m => {
+            if (memberStats[m.id]) memberStats[m.id].food += share;
+          });
         } else {
           genTotal += amt;
-          appData.members.forEach(m => { if (memberStats[m.id]) memberStats[m.id].general += (amt / mCount); });
+          const share = amt / generalCount;
+          appData.members.forEach(m => {
+            if (memberStats[m.id]) memberStats[m.id].general += share;
+          });
         }
       });
 
@@ -732,30 +775,50 @@
       document.getElementById("dCash").textContent = formatMoney(c.cashInHand);
 
       // Dash Table
-      document.getElementById("dashTillTodayTableBody").innerHTML = Object.values(c.memberStats).map(m => `
-        <tr>
-          <td><strong>${m.name}</strong></td>
-          <td>${formatMoney(m.food)}</td>
-          <td>${formatMoney(m.general)}</td>
-          <td><strong style="color:#059669;">${formatMoney(m.bill)}</strong></td>
-          <td>${formatMoney(m.paid)}</td>
-          <td>${m.due > 0 ? `<span class="badge badge-due">বকেয়া ${formatMoney(m.due)}</span>` : `<span class="badge badge-overpaid">উদ্বৃত্ত ${formatMoney(m.overpaid)}</span>`}</td>
-        </tr>
-      `).join("");
+      document.getElementById("dashTillTodayTableBody").innerHTML = Object.values(c.memberStats).map(m => {
+        const isGeneralOnly = (m.contributionType === "GENERAL_ONLY");
+        const typeBadge = isGeneralOnly 
+          ? `<span class="badge badge-general">General Only</span>` 
+          : `<span class="badge badge-both">Food + General</span>`;
+
+        return `
+          <tr>
+            <td><strong>${m.name}</strong></td>
+            <td>${typeBadge}</td>
+            <td>${isGeneralOnly ? '<span style="color:var(--text-muted);">-</span>' : formatMoney(m.food)}</td>
+            <td>${formatMoney(m.general)}</td>
+            <td><strong style="color:#059669;">${formatMoney(m.bill)}</strong></td>
+            <td>${formatMoney(m.paid)}</td>
+            <td>${m.due > 0 ? `<span class="badge badge-due">বকেয়া ${formatMoney(m.due)}</span>` : `<span class="badge badge-overpaid">উদ্বৃত্ত ${formatMoney(m.overpaid)}</span>`}</td>
+          </tr>
+        `;
+      }).join("");
 
       // Shopping Table
       const isAdmin = (currentUser && currentUser.role === "ADMIN");
-      document.getElementById("shopTableBody").innerHTML = appData.shopping.map(s => `
-        <tr>
-          <td>${s.date}</td>
-          <td><span class="badge ${s.type === 'Food' ? 'badge-food' : 'badge-general'}">${s.type === 'Food' ? 'খাবার' : 'কমন'}</span></td>
-          <td><strong>${s.item}</strong></td>
-          <td>${formatMoney(s.amount)}</td>
-          <td>${s.shopper}</td>
-          <td>${s.voucher ? `<button class="btn btn-secondary btn-sm" onclick="viewVoucher('${s.id}')">🧾 রসিদ দেখুন</button>` : `<span style="color:var(--text-muted); font-size:11px;">নেই</span>`}</td>
-          <td>${isAdmin ? `<button class="btn btn-danger btn-sm" onclick="deleteShopping('${s.id}')">মুছুন</button>` : '-'}</td>
-        </tr>
-      `).join("") || `<tr><td colspan="7" style="text-align:center;">কোনো এন্ট্রি নেই</td></tr>`;
+      const foodCount = appData.members.filter(m => (m.contributionType || "BOTH") === "BOTH").length;
+      const totalCount = appData.members.length;
+
+      document.getElementById("shopTableBody").innerHTML = appData.shopping.map(s => {
+        const isFood = (s.type === "Food");
+        const typeBadge = isFood 
+          ? `<span class="badge badge-food">🍲 Food</span>` 
+          : `<span class="badge badge-general">🧼 General</span>`;
+        const memberShareNote = isFood ? `${foodCount} জন (Both)` : `${totalCount} জন (সকল)`;
+
+        return `
+          <tr>
+            <td>${s.date}</td>
+            <td>${typeBadge}</td>
+            <td><strong>${s.item}</strong></td>
+            <td>${formatMoney(s.amount)}</td>
+            <td><small style="color:var(--text-muted); font-weight:600;">${memberShareNote}</small></td>
+            <td>${s.shopper}</td>
+            <td>${s.voucher ? `<button class="btn btn-secondary btn-sm" onclick="viewVoucher('${s.id}')">🧾 রসিদ দেখুন</button>` : `<span style="color:var(--text-muted); font-size:11px;">নেই</span>`}</td>
+            <td>${isAdmin ? `<button class="btn btn-danger btn-sm" onclick="deleteShopping('${s.id}')">মুছুন</button>` : '-'}</td>
+          </tr>
+        `;
+      }).join("") || `<tr><td colspan="8" style="text-align:center;">কোনো এন্ট্রি নেই</td></tr>`;
 
       // Payment Table
       document.getElementById("payTableBody").innerHTML = appData.payments.map(p => `
@@ -772,15 +835,28 @@
       // Members Table
       document.getElementById("memTableBody").innerHTML = appData.members.map(m => {
         const stat = c.memberStats[m.id] || { bill: 0, paid: 0, due: 0, overpaid: 0 };
+        const isGeneralOnly = (m.contributionType === "GENERAL_ONLY");
+        const typeBadge = isGeneralOnly 
+          ? `<span class="badge badge-general">General Only</span>` 
+          : `<span class="badge badge-both">Food + General</span>`;
+
         return `
           <tr>
             <td><strong>${m.name}</strong></td>
             <td><code>${m.phone}</code></td>
             <td><span class="badge ${m.role === 'ADMIN' ? 'badge-food' : ''}">${m.role}</span></td>
-            <td>${formatMoney(stat.bill)}</td>
+            <td>${typeBadge}</td>
+            <td>${isGeneralOnly ? '<span style="color:var(--text-muted);">-</span>' : formatMoney(stat.food)}</td>
+            <td>${formatMoney(stat.general)}</td>
+            <td><strong>${formatMoney(stat.bill)}</strong></td>
             <td>${formatMoney(stat.paid)}</td>
             <td>${stat.due > 0 ? `<span class="badge badge-due">বকেয়া ${formatMoney(stat.due)}</span>` : `<span class="badge badge-overpaid">উদ্বৃত্ত ${formatMoney(stat.overpaid)}</span>`}</td>
-            <td>${isAdmin ? `<button class="btn btn-danger btn-sm" onclick="deleteMember('${m.id}')">মুছুন</button>` : '-'}</td>
+            <td>
+              ${isAdmin ? `
+                <button class="btn btn-secondary btn-sm" onclick="editMember('${m.id}')">এডিট</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteMember('${m.id}')">মুছুন</button>
+              ` : '-'}
+            </td>
           </tr>
         `;
       }).join("");
@@ -820,7 +896,6 @@
       document.getElementById("loginAlert").style.display = "none";
     }
 
-    // MEMBER LOGIN (BY PHONE NUMBER ONLY)
     function doMemberLogin() {
       const phoneInput = document.getElementById("loginPhoneInput");
       const p = cleanPhone(phoneInput ? phoneInput.value : "");
@@ -833,7 +908,6 @@
         return;
       }
 
-      // Check member from appData
       const found = appData.members.find(m => cleanPhone(m.phone) === p);
       if (found) {
         currentUser = { id: found.id, name: found.name, phone: found.phone, role: "MEMBER" };
@@ -851,7 +925,6 @@
       }
     }
 
-    // ADMIN LOGIN (BY SECRET PIN ONLY)
     function doAdminLogin() {
       const pinInput = document.getElementById("adminPinInput");
       const pin = pinInput ? pinInput.value.trim() : "";
@@ -978,6 +1051,7 @@
 
       document.getElementById("mShopItem").value = "";
       document.getElementById("mShopAmount").value = "";
+      document.getElementById("mShopType").value = "Food";
       clearVoucherUpload();
       document.getElementById("modalShop").classList.add("active");
     }
@@ -1046,20 +1120,54 @@
 
     function openAddMemberModal() {
       if (!currentUser || currentUser.role !== "ADMIN") return alert("শুধুমাত্র অ্যাডমিন সদস্য যোগ করতে পারেন!");
+      document.getElementById("modalMemberHeading").textContent = "👥 নতুন সদস্য যোগ করুন (Admin Only)";
+      document.getElementById("editMemberId").value = "";
       document.getElementById("mMemName").value = "";
       document.getElementById("mMemPhone").value = "";
+      document.getElementById("mMemRole").value = "MEMBER";
+      document.getElementById("mMemContributionType").value = "BOTH";
+      document.getElementById("modalMember").classList.add("active");
+    }
+
+    function editMember(id) {
+      if (!currentUser || currentUser.role !== "ADMIN") return alert("শুধুমাত্র অ্যাডমিন সদস্য এডিট করতে পারেন!");
+      const m = appData.members.find(x => x.id === id);
+      if (!m) return;
+      document.getElementById("modalMemberHeading").textContent = "✏️ সদস্য তথ্য এডিট করুন";
+      document.getElementById("editMemberId").value = m.id;
+      document.getElementById("mMemName").value = m.name;
+      document.getElementById("mMemPhone").value = m.phone;
+      document.getElementById("mMemRole").value = m.role || "MEMBER";
+      document.getElementById("mMemContributionType").value = m.contributionType || "BOTH";
       document.getElementById("modalMember").classList.add("active");
     }
 
     function submitMember() {
-      if (!currentUser || currentUser.role !== "ADMIN") return alert("শুধুমাত্র অ্যাডমিন সদস্য যোগ করতে পারেন!");
+      if (!currentUser || currentUser.role !== "ADMIN") return alert("শুধুমাত্র অ্যাডমিন সদস্য সংরক্ষণ করতে পারেন!");
+      const editId = document.getElementById("editMemberId").value;
       const name = document.getElementById("mMemName").value.trim();
       const phone = document.getElementById("mMemPhone").value.trim();
       const role = document.getElementById("mMemRole").value;
+      const contributionType = document.getElementById("mMemContributionType").value;
 
       if (!name || !phone) return alert("নাম ও ফোন নম্বর দিন!");
 
-      appData.members.push({ id: "m_" + Date.now(), name, phone, role });
+      if (editId) {
+        const m = appData.members.find(x => x.id === editId);
+        if (m) {
+          m.name = name;
+          m.phone = phone;
+          m.role = role;
+          m.contributionType = contributionType;
+          saveState();
+          renderAll();
+          closeModal("modalMember");
+          showToast("সদস্য তথ্য সফলভাবে আপডেট হয়েছে!");
+          return;
+        }
+      }
+
+      appData.members.push({ id: "m_" + Date.now(), name, phone, role, contributionType });
       saveState();
       renderAll();
       closeModal("modalMember");
@@ -1087,7 +1195,12 @@
         title = "চলতি মাস: অক্টোবর ২০২৬ (লাইভ স্টেটমেন্ট)";
         food = c.foodTotal; gen = c.genTotal; grand = c.grandTotal;
         membersList = Object.values(c.memberStats).map(m => ({
-          name: m.name, food: m.food, general: m.general, bill: m.bill, paid: m.paid,
+          name: m.name, 
+          type: (m.contributionType === "GENERAL_ONLY" ? "General Only" : "Both"),
+          food: m.food, 
+          general: m.general, 
+          bill: m.bill, 
+          paid: m.paid,
           status: m.due > 0 ? `বকেয়া ${formatMoney(m.due)}` : `উদ্বৃত্ত ${formatMoney(m.overpaid)}`
         }));
         shoppingList = appData.shopping || [];
@@ -1096,7 +1209,12 @@
         title = arch.name;
         food = arch.foodTotal; gen = arch.genTotal; grand = arch.grandTotal;
         membersList = arch.members.map(m => ({
-          name: m.name, food: m.food, general: m.general, bill: m.bill, paid: m.paid,
+          name: m.name,
+          type: (m.type === "GENERAL_ONLY" ? "General Only" : "Both"),
+          food: m.food, 
+          general: m.general, 
+          bill: m.bill, 
+          paid: m.paid,
           status: m.due > 0 ? `বকেয়া ${formatMoney(m.due)}` : `উদ্বৃত্ত ${formatMoney(m.overpaid)}`
         }));
         shoppingList = arch.shopping || [];
@@ -1111,7 +1229,8 @@
       document.getElementById("pdfStatementTableBody").innerHTML = membersList.map((m, idx) => `
         <tr style="border-bottom:1px solid #CBD5E1; text-align:center;">
           <td style="padding:7px; text-align:left;"><strong>${idx + 1}. ${m.name}</strong></td>
-          <td style="padding:7px;">${formatMoney(m.food)}</td>
+          <td style="padding:7px;"><span class="badge ${m.type === 'Both' ? 'badge-both' : 'badge-general'}">${m.type}</span></td>
+          <td style="padding:7px;">${m.type === 'General Only' ? '-' : formatMoney(m.food)}</td>
           <td style="padding:7px;">${formatMoney(m.general)}</td>
           <td style="padding:7px; font-weight:700; color:#0F172A;">${formatMoney(m.bill)}</td>
           <td style="padding:7px;">${formatMoney(m.paid)}</td>
@@ -1147,13 +1266,11 @@
     function closeModal(id) { document.getElementById(id).classList.remove("active"); }
 
     window.onload = function() {
-      // 1. Load cached app data if available
       const saved = localStorage.getItem("OUR_APARTMENT_DB");
       if (saved) {
         try { appData = JSON.parse(saved); } catch (e) {}
       }
 
-      // 2. Check if already logged in inside this specific session
       const sessionUser = sessionStorage.getItem("ACTIVE_SESSION_USER");
       if (sessionUser) {
         try {
@@ -1167,14 +1284,12 @@
         }
       }
 
-      // 3. Otherwise strictly enforce the login screen
       if (!currentUser) {
         document.getElementById("appMainWrapper").style.display = "none";
         document.getElementById("loginScreen").style.display = "flex";
         switchLoginMode("MEMBER");
       }
 
-      // 4. Initialize realtime live sync with Firestore
       initFirebaseSync();
     };
   </script>
