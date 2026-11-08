@@ -1,1297 +1,196 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="bn">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Our Home Community - মেস ম্যানেজমেন্ট সিস্টেম</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap">
-  
-  <!-- Firebase SDK Modules -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyCT2922fMPQOOWltUI2knIdDOwzLN6vA7M",
-      authDomain: "our-home-community.firebaseapp.com",
-      projectId: "our-home-community",
-      storageBucket: "our-home-community.firebasestorage.app",
-      messagingSenderId: "569001044173",
-      appId: "1:569001044173:web:119ff9f09032a73a03a184",
-      measurementId: "G-ZGHWQZT8B2"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    window.firestoreDb = getFirestore(app);
-    window.firestoreTools = { doc, setDoc, onSnapshot };
-  </script>
-
-  <style>
-    :root {
-      --primary: #059669;
-      --primary-hover: #047857;
-      --accent: #6366F1;
-      --dark-bg: #0F172A;
-      --surface: #FFFFFF;
-      --surface-alt: #F8FAFC;
-      --border: #E2E8F0;
-      --text-main: #0F172A;
-      --text-muted: #64748B;
-      --danger: #EF4444;
-      --success: #10B981;
-      --warning: #F59E0B;
-      --bg-color: #F1F5F9;
-      --radius-lg: 16px;
-      --radius-md: 12px;
-      --radius-sm: 8px;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Hind Siliguri', 'Outfit', sans-serif; }
-    body { background-color: var(--bg-color); color: var(--text-main); padding-bottom: 80px; -webkit-font-smoothing: antialiased; }
-    @media (min-width: 1024px) { body { padding-bottom: 0; } }
-
-    /* MANDATORY LOGIN SCREEN */
-    .login-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%); display: flex; align-items: center; justify-content: center; z-index: 99999; padding: 16px; }
-    .login-box { background: #FFFFFF; border-radius: var(--radius-lg); max-width: 420px; width: 100%; padding: 26px 20px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4); }
-    .login-header { text-align: center; margin-bottom: 18px; }
-    .login-header h1 { font-size: 22px; font-weight: 800; color: var(--dark-bg); margin-bottom: 4px; }
-    .login-header p { font-size: 13px; color: var(--text-muted); }
-    .login-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; background: #F1F5F9; padding: 4px; border-radius: var(--radius-sm); margin-bottom: 18px; }
-    .login-tab-btn { padding: 9px; border: none; background: transparent; border-radius: 6px; font-size: 13px; font-weight: 700; color: var(--text-muted); cursor: pointer; }
-    .login-tab-btn.active { background: #FFFFFF; color: var(--dark-bg); box-shadow: 0 2px 4px rgba(0,0,0,0.06); }
-    .login-alert { background: #FEE2E2; color: #991B1B; padding: 10px 14px; border-radius: 6px; font-size: 13px; margin-bottom: 14px; display: none; border: 1px solid #FCA5A5; }
-
-    /* APP CONTAINER */
-    .app-container { display: none; min-height: 100vh; }
-    .sidebar { display: none; width: 250px; background: var(--dark-bg); color: #fff; padding: 20px 12px; position: sticky; top: 0; height: 100vh; flex-shrink: 0; }
-    @media (min-width: 1024px) { .sidebar { display: flex; flex-direction: column; } }
-    .sidebar-brand { margin-bottom: 20px; padding-bottom: 14px; border-bottom: 1px solid rgba(255,255,255,0.1); }
-    .sidebar-brand h2 { font-size: 17px; color: #FFFFFF; font-weight: 800; }
-    .sidebar-nav { list-style: none; flex-grow: 1; }
-    .sidebar-nav a { display: flex; align-items: center; gap: 10px; padding: 10px 12px; color: #94A3B8; text-decoration: none; border-radius: var(--radius-sm); margin-bottom: 4px; font-size: 14px; font-weight: 500; cursor: pointer; }
-    .sidebar-nav a.active { background: rgba(16, 185, 129, 0.15); color: #10B981; font-weight: 700; border-left: 3px solid #10B981; }
-
-    .main-wrapper { flex-grow: 1; min-width: 0; }
-    .topbar { background: #fff; border-bottom: 1px solid var(--border); padding: 12px 18px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 50; }
-    .mess-title { font-size: 17px; font-weight: 800; color: var(--dark-bg); }
-    .role-badge { padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; }
-    .role-badge.admin { background: #FEF3C7; color: #B45309; }
-    .role-badge.member { background: #E0E7FF; color: #4338CA; }
-
-    .content-body { padding: 16px; max-width: 1200px; margin: 0 auto; }
-    .primary-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
-    @media (max-width: 640px) { .primary-actions { grid-template-columns: 1fr; } }
-    .btn-act { padding: 14px 12px; border-radius: var(--radius-md); color: #fff; border: none; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
-    .btn-shop { background: linear-gradient(135deg, #059669, #10B981); }
-    .btn-money { background: linear-gradient(135deg, #6366F1, #4F46E5); }
-
-    .kpi-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px; }
-    @media (min-width: 768px) { .kpi-grid { grid-template-columns: repeat(3, 1fr); } }
-    @media (min-width: 1024px) { .kpi-grid { grid-template-columns: repeat(5, 1fr); } }
-    .kpi-card { background: #fff; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 14px; }
-    .kpi-card span { font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; display: block; }
-    .kpi-card strong { font-size: 18px; color: var(--text-main); margin-top: 4px; display: block; }
-    .kpi-card.cash-in-hand strong { color: var(--primary); }
-
-    .card { background: #fff; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px; margin-bottom: 18px; }
-    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
-    .card-title { font-size: 16px; font-weight: 700; }
-
-    table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; }
-    th { background: var(--surface-alt); padding: 10px 12px; font-weight: 700; color: var(--text-muted); border-bottom: 1px solid var(--border); }
-    td { padding: 10px 12px; border-bottom: 1px solid var(--border); }
-
-    .badge { padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; display: inline-block; }
-    .badge-food { background: #E0E7FF; color: #4338CA; }
-    .badge-general { background: #FEF3C7; color: #B45309; }
-    .badge-both { background: #DCFCE7; color: #166534; }
-    .badge-due { background: #FEE2E2; color: #DC2626; }
-    .badge-overpaid { background: #D1FAE5; color: #059669; }
-
-    .btn { padding: 7px 12px; border-radius: var(--radius-sm); border: 1px solid transparent; font-weight: 600; cursor: pointer; font-size: 13px; }
-    .btn-primary { background: var(--primary); color: #fff; }
-    .btn-secondary { background: var(--surface-alt); border-color: var(--border); color: var(--text-main); }
-    .btn-danger { background: var(--danger); color: #fff; }
-    .btn-sm { padding: 4px 8px; font-size: 11px; }
-
-    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 2500; padding: 16px; }
-    .modal-overlay.active { display: flex; }
-    .modal-box { background: #fff; border-radius: var(--radius-lg); width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; padding: 20px; }
-    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
-    .modal-close { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-muted); }
-
-    .form-group { margin-bottom: 12px; }
-    .form-group label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 4px; }
-    .form-control { width: 100%; padding: 9px 11px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 14px; }
-    .toast { position: fixed; bottom: 20px; right: 20px; background: var(--dark-bg); color: #fff; padding: 10px 16px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; z-index: 3000; display: none; }
-
-    .m-bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #FFFFFF; border-top: 1px solid #E2E8F0; display: flex; justify-content: space-around; align-items: center; height: 58px; z-index: 900; }
-    @media (min-width: 1024px) { .m-bottom-nav { display: none; } }
-    .m-item { display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 10px; color: var(--text-muted); cursor: pointer; flex: 1; }
-    .m-item.active { color: var(--primary); font-weight: 800; }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>মেস খাতা</title>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eef1f8;--card:#fbfcff;--ink:#16204a;--mut:#5d6896;--pri:#2b3a8c;--bad:#c2410c;--ok:#0f7a4d;--line:#c9d0ea;color-scheme:light}
+@media(prefers-color-scheme:dark){:root{--bg:#10142a;--card:#171c38;--ink:#e6e9fa;--mut:#99a3d6;--pri:#8ea0ff;--bad:#ff9a6b;--ok:#5fd6a1;--line:#2c3563;color-scheme:dark}}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:'Hind Siliguri',system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:16px;line-height:1.5;padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0)}
+.wrap{max-width:760px;margin:0 auto;padding:16px}
+h1,h2,h3{margin:0 0 8px}
+.mut{color:var(--mut)}
+.bar{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+input,select,button{font:inherit;color:inherit;border:1.5px solid var(--line);background:var(--card);border-radius:6px;padding:9px 11px;width:100%;margin:4px 0}
+button{background:var(--pri);color:var(--bg);border-color:var(--pri);font-weight:600;cursor:pointer;width:auto}
+button.ghost{background:transparent;color:var(--pri)}
+button.sm{padding:3px 9px;font-size:14px;margin:0}
+:focus-visible{outline:3px solid var(--pri);outline-offset:2px}
+.tabs{display:flex;gap:6px;overflow-x:auto;margin-bottom:12px}
+.tabs button{background:transparent;color:var(--ink);border-color:var(--line)}
+.tabs button.on{background:var(--pri);color:var(--bg)}
+.login{max-width:360px;margin:12vh auto;padding:24px}
+.login h1{font-size:34px;color:var(--pri)}
+.err{color:var(--bad);min-height:24px}
+.sheet{background:var(--card);border:1.5px solid var(--line);border-radius:6px;padding:16px;margin-bottom:14px;background-image:repeating-linear-gradient(transparent 0 31px,var(--line) 31px 32px);background-position:0 8px}
+.sheet h3,.sheet form{background:var(--card)}
+.bal{display:flex;justify-content:space-between;align-items:baseline;border-bottom:3px double var(--pri);padding-bottom:6px;margin-bottom:10px}
+.bal b{font-size:40px;line-height:1.1}
+.bad{color:var(--bad)}.ok{color:var(--ok)}
+.row{display:flex;justify-content:space-between;gap:8px;padding:4px 0;border-bottom:1px solid var(--line)}
+.wide{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+.num{text-align:right}
+.chk{display:flex;flex-wrap:wrap;gap:4px 14px;margin:6px 0}
+.chk label{display:flex;gap:6px;align-items:center}
+.chk input{width:auto;margin:0}
+.print-only{display:none}
+@media print{.noprint{display:none!important}.print-only{display:block}body{background:#fff;color:#000}.sheet{background:#fff;border-color:#999}}
+</style>
 </head>
 <body>
-
-  <!-- SIGN IN OVERLAY -->
-  <div class="login-overlay" id="loginScreen">
-    <div class="login-box">
-      <div class="login-header">
-        <h1>Our Home Community</h1>
-        <p>মেস ম্যানেজমেন্ট সিস্টেমে স্বাগতম</p>
-      </div>
-
-      <div class="login-tabs">
-        <button class="login-tab-btn active" id="tabMemberBtn" onclick="switchLoginMode('MEMBER')">মেম্বার মোবাইল লগইন</button>
-        <button class="login-tab-btn" id="tabAdminBtn" onclick="switchLoginMode('ADMIN')">অ্যাডমিন প্যানেল</button>
-      </div>
-
-      <div class="login-alert" id="loginAlert"></div>
-
-      <!-- MEMBER FORM -->
-      <div id="loginMemberForm">
-        <div class="form-group">
-          <label>নিবন্ধিত মোবাইল নম্বর দিন: *</label>
-          <input type="tel" class="form-control" id="loginPhoneInput" placeholder="যেমন: 01711000001" onkeypress="if(event.key==='Enter') doMemberLogin()">
-          <small style="color:var(--text-muted); display:block; margin-top:4px;">🔒 মেম্বাররা শুধুমাত্র নিজেদের মোবাইল নম্বর দিয়ে লগইন করবেন।</small>
-        </div>
-        <button class="btn btn-primary" style="width:100%; padding:12px;" onclick="doMemberLogin()">লগইন ও ড্যাশবোর্ডে প্রবেশ →</button>
-      </div>
-
-      <!-- ADMIN FORM -->
-      <div id="loginAdminForm" style="display:none;">
-        <div class="form-group">
-          <label>অ্যাডমিন সিক্রেট পিন: *</label>
-          <input type="password" class="form-control" id="adminPinInput" placeholder="অ্যাডমিন পিন দিন" onkeypress="if(event.key==='Enter') doAdminLogin()">
-          <small style="color:var(--text-muted); display:block; margin-top:4px;">শুধুমাত্র অনুমোদিত অ্যাডমিন (মাহি) প্রবেশ করতে পারবেন।</small>
-        </div>
-        <button class="btn btn-act btn-shop" style="width:100%; padding:12px;" onclick="doAdminLogin()">🔐 সিকিউর অ্যাডমিন লগইন →</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- MAIN APP CONTAINER -->
-  <div class="app-container" id="appMainWrapper">
-    <aside class="sidebar">
-      <div class="sidebar-brand">
-        <h2>Our Home Community</h2>
-        <p style="font-size:11px; color:#94A3B8;">মেস ম্যানেজমেন্ট</p>
-      </div>
-      <ul class="sidebar-nav">
-        <li><a class="active" id="nav-dashboard" onclick="showTab('dashboard')">ড্যাশবোর্ড</a></li>
-        <li><a id="nav-shopping" onclick="showTab('shopping')">কেনাকাটা (Shopping)</a></li>
-        <li id="sideNavMoney"><a id="nav-money" onclick="showTab('money')">জমা টাকা (Collection)</a></li>
-        <li><a id="nav-members" onclick="showTab('members')">সদস্যবৃন্দ (Members)</a></li>
-        <li><a id="nav-bills" onclick="showTab('bills')">📑 মাসিক হিসাব ও PDF</a></li>
-        <li id="sideNavSettings"><a id="nav-settings" onclick="showTab('settings')">সেটিংস (Settings)</a></li>
-      </ul>
-      <div style="margin-top:auto; padding-top:14px; border-top:1px solid rgba(255,255,255,0.1); font-size:12px; color:#94A3B8;">
-        <div>লগইন: <strong style="color:#10B981;" id="sideUserName">-</strong></div>
-        <button class="btn btn-danger btn-sm" style="width:100%; margin-top:8px;" onclick="doLogout()">লগআউট</button>
-      </div>
-    </aside>
-
-    <main class="main-wrapper">
-      <header class="topbar">
-        <div class="topbar-left">
-          <span class="mess-title">Our Home Community</span>
-        </div>
-        <div class="topbar-right">
-          <span class="role-badge member" id="topRoleBadge">-</span>
-          <button class="btn btn-secondary btn-sm" onclick="doLogout()">লগআউট</button>
-        </div>
-      </header>
-
-      <div class="content-body">
-        
-        <!-- DASHBOARD TAB -->
-        <div id="tab-dashboard">
-          <div class="primary-actions">
-            <button class="btn-act btn-shop" onclick="openShopModal()">🛒 + নতুন বাজার যোগ করুন</button>
-            <button class="btn-act btn-money" id="btnDashMoneyAction" onclick="handleMoneyClick()">💰 + জমা টাকা যোগ করুন (Admin)</button>
-          </div>
-
-          <div class="kpi-grid">
-            <div class="kpi-card"><span>মোট খাবার খরচ</span><strong id="dFood">€ 0.00</strong></div>
-            <div class="kpi-card"><span>মোট কমন খরচ</span><strong id="dGen">€ 0.00</strong></div>
-            <div class="kpi-card"><span>সর্বমোট মেস খরচ</span><strong id="dTotal">€ 0.00</strong></div>
-            <div class="kpi-card"><span>মোট সংগৃহীত জমা</span><strong id="dPaid">€ 0.00</strong></div>
-            <div class="kpi-card cash-in-hand"><span>ক্যাশ ইন হ্যান্ড</span><strong id="dCash">€ 0.00</strong></div>
-          </div>
-
-          <div class="card">
-            <div class="card-header">
-              <h3 class="card-title">⏱️ আজকে পর্যন্ত মোট বিল (সদস্য অনুযায়ী লাইভ বিবরণী)</h3>
-              <button class="btn btn-secondary btn-sm" onclick="openMonthPdfModal('curr')">🖨️ পূর্ণাঙ্গ PDF স্টেটমেন্ট</button>
-            </div>
-            <div style="overflow-x:auto;">
-              <table>
-                <thead>
-                  <tr>
-                    <th>সদস্যের নাম</th>
-                    <th>ধরণ (Type)</th>
-                    <th>খাবার বিল</th>
-                    <th>কমন বিল</th>
-                    <th>আজ পর্যন্ত মোট বিল</th>
-                    <th>মোট জমা</th>
-                    <th>বর্তমান অবস্থা</th>
-                  </tr>
-                </thead>
-                <tbody id="dashTillTodayTableBody"></tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        <!-- SHOPPING TAB -->
-        <div id="tab-shopping" style="display:none;">
-          <div class="card-header">
-            <h3 class="card-title">🛒 কেনাকাটার পূর্ণাঙ্গ তালিকা (Shopping List)</h3>
-            <button class="btn btn-primary" onclick="openShopModal()">+ নতুন বাজার এন্ট্রি</button>
-          </div>
-          <div class="card" style="overflow-x:auto; padding:0;">
-            <table>
-              <thead>
-                <tr>
-                  <th>তারিখ</th>
-                  <th>ধরণ (Type)</th>
-                  <th>বিবরণ</th>
-                  <th>টাকার পরিমাণ</th>
-                  <th>ভাগীদার সদস্য</th>
-                  <th>ক্রেতা</th>
-                  <th>ভাউচার / মেমো</th>
-                  <th>অ্যাকশন</th>
-                </tr>
-              </thead>
-              <tbody id="shopTableBody"></tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- MONEY TAB -->
-        <div id="tab-money" style="display:none;">
-          <div class="card-header">
-            <h3 class="card-title">💰 জমা টাকার খাতা</h3>
-            <button class="btn btn-primary" id="btnMoneyAddTop" onclick="handleMoneyClick()">+ জমা টাকা রেকর্ড (Admin)</button>
-          </div>
-          <div class="card" style="overflow-x:auto; padding:0;">
-            <table>
-              <thead>
-                <tr>
-                  <th>তারিখ</th>
-                  <th>সদস্যের নাম</th>
-                  <th>জমা পরিমাণ</th>
-                  <th>পদ্ধতি</th>
-                  <th>রেফারেন্স</th>
-                  <th>অ্যাকশন</th>
-                </tr>
-              </thead>
-              <tbody id="payTableBody"></tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- MEMBERS TAB -->
-        <div id="tab-members" style="display:none;">
-          <div class="card-header">
-            <h3 class="card-title">👥 সদস্য ব্যবস্থাপনা (Member Types & Status)</h3>
-            <button class="btn btn-primary" id="btnAddMemberBtn" style="display:none;" onclick="openAddMemberModal()">+ নতুন সদস্য যোগ করুন (Admin)</button>
-          </div>
-          <div class="card" style="overflow-x:auto; padding:0;">
-            <table>
-              <thead>
-                <tr>
-                  <th>নাম</th>
-                  <th>মোবাইল নম্বর</th>
-                  <th>রোল</th>
-                  <th>কন্ট্রিবিউশন ধরণ</th>
-                  <th>খাবার বিল</th>
-                  <th>কমন বিল</th>
-                  <th>মোট বিল</th>
-                  <th>জমা</th>
-                  <th>বর্তমান ব্যালেন্স</th>
-                  <th>অ্যাকশন</th>
-                </tr>
-              </thead>
-              <tbody id="memTableBody"></tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- MONTHLY BILLS & ARCHIVES TAB -->
-        <div id="tab-bills" style="display:none;">
-          <div class="card-header">
-            <div>
-              <h3 class="card-title">📑 মাসিক হিসাব বিবরণী ও বিগত মাসের PDF আর্কাইভ</h3>
-              <p style="font-size:12px; color:var(--text-muted); margin-top:2px;">চলতি ও বিগত ২ মাসের রিপোর্ট দেখুন ও প্রিন্ট করুন</p>
-            </div>
-            <button class="btn btn-primary btn-sm" onclick="openMonthPdfModal('curr')">🖨️ চলতি মাসের পূর্ণাঙ্গ PDF</button>
-          </div>
-
-          <div class="card" style="margin-bottom:14px; border:1.5px solid #CBD5E1;">
-            <h4 style="font-size:14px; margin-bottom:10px;">📁 বিগত ২ মাসের অফিসিয়াল PDF আর্কাইভ</h4>
-            <div style="display:flex; flex-direction:column; gap:10px;">
-              <div style="display:flex; justify-content:space-between; align-items:center; background:var(--surface-alt); padding:12px; border-radius:8px; border:1px solid var(--border);">
-                <div>
-                  <strong>সেপ্টেম্বর ২০২৬ (September 2026)</strong>
-                  <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">সর্বমোট খরচ: € 387.50 | ক্লোজড স্টেটমেন্ট</div>
-                </div>
-                <button class="btn btn-secondary btn-sm" onclick="openMonthPdfModal('2026-09')">📄 সেপ্টেম্বর PDF ভিউ / প্রিন্ট</button>
-              </div>
-
-              <div style="display:flex; justify-content:space-between; align-items:center; background:var(--surface-alt); padding:12px; border-radius:8px; border:1px solid var(--border);">
-                <div>
-                  <strong>আগস্ট ২০২৬ (August 2026)</strong>
-                  <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">সর্বমোট খরচ: € 348.00 | ক্লোজড স্টেটমেন্ট</div>
-                </div>
-                <button class="btn btn-secondary btn-sm" onclick="openMonthPdfModal('2026-08')">📄 আগস্ট PDF ভিউ / প্রিন্ট</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- SETTINGS TAB (ADMIN ONLY) -->
-        <div id="tab-settings" style="display:none;">
-          <div class="card" id="cardSettingsMain">
-            <h3 class="card-title" style="margin-bottom:12px;">⚙️ অ্যাডমিন সেটিংস ও কনফিগারেশন</h3>
-            <div class="form-group">
-              <label>মেস / অ্যাপার্টমেন্টের নাম: *</label>
-              <input type="text" class="form-control" id="setAptName">
-            </div>
-            <div class="form-group">
-              <label>অ্যাডমিন সিক্রেট পিন: *</label>
-              <input type="password" class="form-control" id="setAdminPin">
-            </div>
-            <button class="btn btn-primary" onclick="submitSaveGeneralSettings()">সেভ করুন</button>
-          </div>
-        </div>
-
-      </div>
-    </main>
-
-    <!-- MOBILE BOTTOM NAV -->
-    <nav class="m-bottom-nav">
-      <div class="m-item active" id="mNav-dashboard" onclick="showTab('dashboard')"><span>📊 হোম</span></div>
-      <div class="m-item" id="mNav-shopping" onclick="showTab('shopping')"><span>🛒 বাজার</span></div>
-      <div class="m-item" id="mNav-money" onclick="showTab('money')"><span>💰 জমা</span></div>
-      <div class="m-item" id="mNav-members" onclick="showTab('members')"><span>👥 সদস্য</span></div>
-      <div class="m-item" id="mNav-bills" onclick="showTab('bills')"><span>📑 বিল PDF</span></div>
-    </nav>
-  </div>
-
-  <!-- MODAL: ADD / EDIT SHOPPING -->
-  <div class="modal-overlay" id="modalShop">
-    <div class="modal-box">
-      <div class="modal-header">
-        <h3>🛒 নতুন বাজার যোগ করুন</h3>
-        <button class="modal-close" onclick="closeModal('modalShop')">&times;</button>
-      </div>
-      <div class="form-group">
-        <label>বাজারের ধরণ (Expense Type): *</label>
-        <select class="form-control" id="mShopType">
-          <option value="Food">🍲 Food Shopping (খাবার বাজার - শুধুমাত্র Both সদস্যের ভাগ)</option>
-          <option value="General">🧼 General Shopping (কমন বাজার - সকল সদস্যের ভাগ)</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>বিবরণ: *</label>
-        <input type="text" class="form-control" id="mShopItem" placeholder="যেমন: চাল, ডাল, তেল বা টিস্যু" required>
-      </div>
-      <div class="form-group">
-        <label>টাকার পরিমাণ: *</label>
-        <input type="number" step="any" class="form-control" id="mShopAmount" placeholder="যেমন: 50.00" required>
-      </div>
-      <div class="form-group">
-        <label>কে বাজার করেছে: *</label>
-        <select class="form-control" id="mShopShopper"></select>
-      </div>
-
-      <!-- VOUCHER / RECEIPT BUTTONS -->
-      <div class="form-group" style="background:var(--surface-alt); padding:12px; border-radius:8px; border:1px solid #CBD5E1;">
-        <label style="margin-bottom:6px;">📸 ভাউচার / মেমো / রসিদ সংযুক্তি:</label>
-        <input type="file" id="mShopVoucherInput" accept="image/*" style="display:none;" onchange="handleVoucherFileSelected(this)">
-
-        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px;">
-          <button type="button" class="btn btn-secondary btn-sm" onclick="triggerVoucherSelect(false)">
-            📁 ফাইল / গ্যালারি থেকে ছবি
-          </button>
-          <button type="button" class="btn btn-secondary btn-sm" onclick="triggerVoucherSelect(true)">
-            📸 সরাসরি ক্যামেরা দিয়ে ছবি তুলুন
-          </button>
-        </div>
-
-        <div id="voucherPreviewBox" style="display:none; align-items:center; gap:12px; padding:8px 10px; background:#FFFFFF; border:1px dashed #CBD5E1; border-radius:6px;">
-          <img id="voucherPreviewImg" src="" style="width:50px; height:50px; object-fit:cover; border-radius:4px; border:1px solid #CBD5E1; cursor:pointer;" onclick="previewCurrentVoucherModal()">
-          <div style="flex:1; overflow:hidden;">
-            <div id="voucherFileName" style="font-weight:600; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">memo.jpg</div>
-            <div id="voucherFileSize" style="font-size:11px; color:#10B981;">ছবি প্রস্তুত আছে ✓</div>
-          </div>
-          <button type="button" class="btn btn-danger btn-sm" onclick="clearVoucherUpload()">❌ বাদ দিন</button>
-        </div>
-      </div>
-
-      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
-        <button class="btn btn-secondary" onclick="closeModal('modalShop')">বাতিল</button>
-        <button class="btn btn-primary" onclick="submitShopping()">সংরক্ষণ করুন</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL: VOUCHER VIEW -->
-  <div class="modal-overlay" id="modalVoucher">
-    <div class="modal-box" style="max-width:500px; text-align:center;">
-      <div class="modal-header">
-        <h3 id="modalVoucherTitle">🧾 ভাউচার / মেমোর কপি</h3>
-        <button class="modal-close" onclick="closeModal('modalVoucher')">&times;</button>
-      </div>
-      <div style="background:#0F172A; padding:8px; border-radius:8px; display:flex; justify-content:center; align-items:center;">
-        <img id="modalVoucherImg" src="" style="max-width:100%; max-height:65vh; object-fit:contain; border-radius:4px;">
-      </div>
-      <div style="margin-top:14px; display:flex; justify-content:space-between; align-items:center;">
-        <a id="btnDownloadVoucher" class="btn btn-secondary btn-sm" href="#" download="voucher.jpg">📥 ডাউনলোড করুন</a>
-        <button class="btn btn-primary btn-sm" onclick="closeModal('modalVoucher')">বন্ধ করুন</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL: ADD PAYMENT -->
-  <div class="modal-overlay" id="modalPay">
-    <div class="modal-box">
-      <div class="modal-header">
-        <h3>💰 জমা টাকা রেকর্ড করুন (Admin Only)</h3>
-        <button class="modal-close" onclick="closeModal('modalPay')">&times;</button>
-      </div>
-      <div class="form-group">
-        <label>সদস্য নির্বাচন করুন: *</label>
-        <select class="form-control" id="mPayMember"></select>
-      </div>
-      <div class="form-group">
-        <label>জমা পরিমাণ: *</label>
-        <input type="number" step="any" class="form-control" id="mPayAmount" placeholder="যেমন: 100" required>
-      </div>
-      <div class="form-group">
-        <label>পদ্ধতি:</label>
-        <select class="form-control" id="mPayMethod">
-          <option value="Bank Transfer">Bank Transfer</option>
-          <option value="Cash">Cash</option>
-          <option value="bKash">bKash</option>
-          <option value="Revolut">Revolut</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>রেফারেন্স / নোট:</label>
-        <input type="text" class="form-control" id="mPayRef" placeholder="যেমন: অক্টোবর ১ম কিস্তি">
-      </div>
-      <div style="display:flex; justify-content:flex-end; gap:8px;">
-        <button class="btn btn-secondary" onclick="closeModal('modalPay')">বাতিল</button>
-        <button class="btn btn-primary" onclick="submitPayment()">জমা করুন</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL: ADD / EDIT MEMBER (WITH MEMBER TYPE SELECTION) -->
-  <div class="modal-overlay" id="modalMember">
-    <div class="modal-box">
-      <div class="modal-header">
-        <h3 id="modalMemberHeading">👥 সদস্য তথ্য (Admin Only)</h3>
-        <button class="modal-close" onclick="closeModal('modalMember')">&times;</button>
-      </div>
-      <input type="hidden" id="editMemberId">
-      <div class="form-group">
-        <label>সদস্যের নাম: *</label>
-        <input type="text" class="form-control" id="mMemName" placeholder="যেমন: তানভীর আহমেদ" required>
-      </div>
-      <div class="form-group">
-        <label>লগইন মোবাইল নম্বর: *</label>
-        <input type="tel" class="form-control" id="mMemPhone" placeholder="01711000001" required>
-      </div>
-      <div class="form-group">
-        <label>রোল (Role):</label>
-        <select class="form-control" id="mMemRole">
-          <option value="MEMBER">MEMBER (সাধারণ সদস্য)</option>
-          <option value="ADMIN">ADMIN (অ্যাডমিন)</option>
-        </select>
-      </div>
-
-      <!-- MEMBER CONTRIBUTION TYPE SELECTION -->
-      <div class="form-group" style="background:var(--surface-alt); padding:10px 12px; border-radius:6px; border:1px solid #CBD5E1;">
-        <label style="color:#0F172A; margin-bottom:6px;">কন্ট্রিবিউশন ধরণ (Member Contribution Type): *</label>
-        <select class="form-control" id="mMemContributionType">
-          <option value="BOTH">🍲 + 🧼 Food and General (উভয় খরচেই অংশ নেবেন)</option>
-          <option value="GENERAL_ONLY">🧼 General Only (শুধুমাত্র কমন খরচ, খাবারে কোনো অংশ নেই)</option>
-        </select>
-        <small style="color:var(--text-muted); display:block; margin-top:4px;">
-          💡 <em>General Only দিলে খাবার বাজার থেকে এই সদস্য বাদ থাকবেন এবং উনার খাবার বিল হবে ০.০০।</em>
-        </small>
-      </div>
-
-      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
-        <button class="btn btn-secondary" onclick="closeModal('modalMember')">বাতিল</button>
-        <button class="btn btn-primary" onclick="submitMember()">সংরক্ষণ করুন</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL: COMPREHENSIVE PDF DOWNLOAD -->
-  <div class="modal-overlay" id="modalMonthlyPdf">
-    <div class="modal-box" style="max-width:750px;">
-      <div class="modal-header">
-        <h3 id="modalPdfMonthTitle">📄 অফিশিয়াল মাসিক বিল স্টেটমেন্ট (PDF)</h3>
-        <button class="modal-close" onclick="closeModal('modalMonthlyPdf')">&times;</button>
-      </div>
-      <div id="printablePdfContent" style="background:#fff; border:1px solid #CBD5E1; border-radius:6px; padding:20px;">
-        <div style="text-align:center; border-bottom:2px solid #0F172A; padding-bottom:12px; margin-bottom:16px;">
-          <h2 style="font-size:20px; color:#0F172A;">OUR HOME COMMUNITY</h2>
-          <p style="font-size:12px; color:#64748B;">Official Monthly Mess & Flat Expense Statement</p>
-          <div id="pdfMonthBadge" style="display:inline-block; background:#0F172A; color:#fff; font-size:12px; font-weight:700; padding:3px 12px; border-radius:12px; margin-top:6px;">মাস</div>
-        </div>
-        
-        <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; margin-bottom:16px; text-align:center;">
-          <div style="background:#F8FAFC; padding:10px; border-radius:6px; border:1px solid #E2E8F0;"><div style="font-size:11px; color:#64748B;">মোট খাবার</div><strong id="pdfFoodTotal" style="font-size:15px;">€ 0.00</strong></div>
-          <div style="background:#F8FAFC; padding:10px; border-radius:6px; border:1px solid #E2E8F0;"><div style="font-size:11px; color:#64748B;">মোট কমন</div><strong id="pdfGenTotal" style="font-size:15px;">€ 0.00</strong></div>
-          <div style="background:#F1F5F9; padding:10px; border-radius:6px; border:1px solid #CBD5E1;"><div style="font-size:11px; color:#64748B;">সর্বমোট খরচ</div><strong id="pdfGrandTotal" style="font-size:15px; color:#059669;">€ 0.00</strong></div>
-        </div>
-
-        <h4 style="font-size:13px; font-weight:700; margin:14px 0 8px 0;">১. সদস্যভিত্তিক বিল ও জমা বিবরণী:</h4>
-        <table style="width:100%; font-size:12px; border:1px solid #CBD5E1; border-collapse:collapse; margin-bottom:18px;">
-          <thead>
-            <tr style="background:#0F172A; color:#fff;">
-              <th style="padding:8px; color:#fff;">সদস্য</th>
-              <th style="padding:8px; color:#fff; text-align:center;">ধরণ</th>
-              <th style="padding:8px; color:#fff; text-align:center;">খাবার বিল</th>
-              <th style="padding:8px; color:#fff; text-align:center;">কমন বিল</th>
-              <th style="padding:8px; color:#fff; text-align:center;">মোট বিল</th>
-              <th style="padding:8px; color:#fff; text-align:center;">মোট জমা</th>
-              <th style="padding:8px; color:#fff; text-align:center;">বর্তমান স্থিতি</th>
-            </tr>
-          </thead>
-          <tbody id="pdfStatementTableBody"></tbody>
-        </table>
-
-        <h4 style="font-size:13px; font-weight:700; margin:14px 0 8px 0;">২. মাসের কেনাকাটার পূর্ণাঙ্গ বাজার তালিকা:</h4>
-        <table style="width:100%; font-size:11.5px; border:1px solid #CBD5E1; border-collapse:collapse;">
-          <thead>
-            <tr style="background:#334155; color:#fff;">
-              <th style="padding:7px; color:#fff; width:45px;">নং</th>
-              <th style="padding:7px; color:#fff; width:95px;">তারিখ</th>
-              <th style="padding:7px; color:#fff; width:65px;">ধরণ</th>
-              <th style="padding:7px; color:#fff;">বাজারের বিবরণ</th>
-              <th style="padding:7px; color:#fff; width:110px;">ক্রেতা</th>
-              <th style="padding:7px; color:#fff; text-align:right; width:85px;">খরচ</th>
-            </tr>
-          </thead>
-          <tbody id="pdfShoppingTableBody"></tbody>
-        </table>
-
-        <div style="display:flex; justify-content:space-between; margin-top:24px; padding-top:14px; font-size:11px; color:#64748B; border-top:1px dashed #CBD5E1;">
-          <div>যাচাইকারী: <strong>মাহি (Admin)</strong></div>
-          <div>মেস: <strong>Our Home Community</strong></div>
-          <div>তারিখ: <span id="pdfPrintDate"></span></div>
-        </div>
-      </div>
-      <div style="display:flex; justify-content:space-between; margin-top:14px;">
-        <button class="btn btn-secondary" onclick="printPdfModal()">🖨️ প্রিন্ট / Save as PDF</button>
-        <button class="btn btn-primary" onclick="closeModal('modalMonthlyPdf')">বন্ধ করুন</button>
-      </div>
-    </div>
-  </div>
-
-  <div id="appToast" class="toast"></div>
-
-  <!-- JAVASCRIPT ENGINE -->
-  <script>
-    let ADMIN_SECRET_PIN = "123456";
-    let currentUser = null; 
-    let currentVoucherBase64 = null;
-
-    let appData = {
-      messName: "Our Home Community",
-      members: [
-        { id: "m1", name: "মাহি (Mahi)", phone: "01308650721", role: "ADMIN", contributionType: "BOTH" },
-        { id: "m2", name: "রহিম (Rahim)", phone: "01711000001", role: "MEMBER", contributionType: "BOTH" },
-        { id: "m3", name: "করিম (Karim)", phone: "01711000002", role: "MEMBER", contributionType: "BOTH" },
-        { id: "m4", name: "হাসান (Hasan)", phone: "01711000003", role: "MEMBER", contributionType: "GENERAL_ONLY" },
-        { id: "m5", name: "তানভীর (Tanvir)", phone: "01711000004", role: "MEMBER", contributionType: "BOTH" }
-      ],
-      shopping: [
-        { id: "SHOP-1", date: "2026-10-01", type: "Food", item: "চাল, ডাল ও তেল", amount: 65.50, shopper: "মাহি (Mahi)", voucher: null },
-        { id: "SHOP-2", date: "2026-10-03", type: "General", item: "টিস্যু ও হ্যান্ডওয়াশ", amount: 18.50, shopper: "রহিম (Rahim)", voucher: null }
-      ],
-      payments: [
-        { id: "PAY-1", date: "2026-10-01", memberId: "m1", member: "মাহি (Mahi)", amount: 100, method: "Bank Transfer", ref: "১ম কিস্তি" },
-        { id: "PAY-2", date: "2026-10-01", memberId: "m2", member: "রহিম (Rahim)", amount: 80, method: "Revolut", ref: "Rev-998" }
-      ]
-    };
-
-    const pastMonthsArchive = {
-      "2026-09": {
-        name: "সেপ্টেম্বর ২০২৬ (September 2026)",
-        foodTotal: 345.50, genTotal: 42.00, grandTotal: 387.50, paidTotal: 390.00,
-        members: [
-          { name: "মাহি (Mahi)", type: "BOTH", food: 86.38, general: 8.40, bill: 94.78, paid: 95.00, due: 0, overpaid: 0.22 },
-          { name: "রহিম (Rahim)", type: "BOTH", food: 86.38, general: 8.40, bill: 94.78, paid: 95.00, due: 0, overpaid: 0.22 },
-          { name: "করিম (Karim)", type: "BOTH", food: 86.38, general: 8.40, bill: 94.78, paid: 90.00, due: 4.78, overpaid: 0 },
-          { name: "হাসান (Hasan)", type: "GENERAL_ONLY", food: 0.00, general: 8.40, bill: 8.40, paid: 10.00, due: 0, overpaid: 1.60 },
-          { name: "তানভীর (Tanvir)", type: "BOTH", food: 86.38, general: 8.40, bill: 94.78, paid: 100.00, due: 0, overpaid: 5.22 }
-        ],
-        shopping: [
-          { id: "SHOP-SEP-1", date: "2026-09-02", type: "Food", item: "চাল ও মসলা", amount: 85.00, shopper: "মাহি (Mahi)" },
-          { id: "SHOP-SEP-2", date: "2026-09-10", type: "Food", item: "মুরগি ও ডিম", amount: 110.50, shopper: "করিম (Karim)" },
-          { id: "SHOP-SEP-3", date: "2026-09-15", type: "General", item: "ক্লিনার ও ডিশওয়াশ", amount: 42.00, shopper: "রহিম (Rahim)" },
-          { id: "SHOP-SEP-4", date: "2026-09-24", type: "Food", item: "মাছ ও শাকসবজি", amount: 150.00, shopper: "তানভীর (Tanvir)" }
-        ]
-      },
-      "2026-08": {
-        name: "আগস্ট ২০২৬ (August 2026)",
-        foodTotal: 310.00, genTotal: 38.00, grandTotal: 348.00, paidTotal: 350.00,
-        members: [
-          { name: "মাহি (Mahi)", type: "BOTH", food: 77.50, general: 7.60, bill: 85.10, paid: 86.00, due: 0, overpaid: 0.90 },
-          { name: "রহিম (Rahim)", type: "BOTH", food: 77.50, general: 7.60, bill: 85.10, paid: 86.00, due: 0, overpaid: 0.90 },
-          { name: "করিম (Karim)", type: "BOTH", food: 77.50, general: 7.60, bill: 85.10, paid: 85.10, due: 0, overpaid: 0 },
-          { name: "হাসান (Hasan)", type: "GENERAL_ONLY", food: 0.00, general: 7.60, bill: 7.60, paid: 10.00, due: 0, overpaid: 2.40 },
-          { name: "তানভীর (Tanvir)", type: "BOTH", food: 77.50, general: 7.60, bill: 85.10, paid: 82.90, due: 2.20, overpaid: 0 }
-        ],
-        shopping: [
-          { id: "SHOP-AUG-1", date: "2026-08-04", type: "Food", item: "চাল ও তেল", amount: 75.00, shopper: "মাহি (Mahi)" },
-          { id: "SHOP-AUG-2", date: "2026-08-12", type: "Food", item: "মাংস ও ডিম", amount: 120.00, shopper: "করিম (Karim)" },
-          { id: "SHOP-AUG-3", date: "2026-08-20", type: "General", item: "টিস্যু ও সাবান", amount: 38.00, shopper: "হাসান (Hasan)" },
-          { id: "SHOP-AUG-4", date: "2026-08-27", type: "Food", item: "মাছ ও সবজি", amount: 115.00, shopper: "তানভীর (Tanvir)" }
-        ]
-      }
-    };
-
-    function showToast(msg) {
-      const t = document.getElementById("appToast");
-      t.textContent = msg;
-      t.style.display = "block";
-      setTimeout(() => { t.style.display = "none"; }, 3000);
-    }
-
-    function formatMoney(n) { return `€ ${(parseFloat(n) || 0).toFixed(2)}`; }
-    function cleanPhone(p) { return String(p || "").replace(/[\s\-\(\)\+]/g, ""); }
-
-    const FIRESTORE_DOC_ID = "MSS-JALALABAD";
-
-    function initFirebaseSync() {
-      if (!window.firestoreDb || !window.firestoreTools) {
-        setTimeout(initFirebaseSync, 300);
-        return;
-      }
-      const { doc, onSnapshot } = window.firestoreTools;
-      const docRef = doc(window.firestoreDb, "messes_data", FIRESTORE_DOC_ID);
-
-      onSnapshot(docRef, (docSnap) => {
-        if (docSnap.exists()) {
-          appData = docSnap.data();
-          if (currentUser) {
-            updateUserDisplay();
-            renderAll();
-          }
-        } else {
-          saveState();
-        }
-      }, (err) => console.error("Firebase Sync error:", err));
-    }
-
-    function saveState() {
-      if (window.firestoreDb && window.firestoreTools) {
-        const { doc, setDoc } = window.firestoreTools;
-        setDoc(doc(window.firestoreDb, "messes_data", FIRESTORE_DOC_ID), appData).catch(e => console.error(e));
-      }
-    }
-
-    // ACCURATE CORE CALCULATION ENGINE
-    function calculate() {
-      let foodTotal = 0, genTotal = 0, paidTotal = 0;
-      let memberStats = {};
-
-      appData.members.forEach(m => {
-        const cType = m.contributionType || "BOTH";
-        memberStats[m.id] = {
-          id: m.id,
-          name: m.name,
-          role: m.role,
-          contributionType: cType,
-          food: 0,
-          general: 0,
-          bill: 0,
-          paid: 0,
-          due: 0,
-          overpaid: 0
-        };
-      });
-
-      // Filter members who participate in food (Only BOTH type)
-      const foodEligibleMembers = appData.members.filter(m => (m.contributionType || "BOTH") === "BOTH");
-      const foodCount = foodEligibleMembers.length || 1;
-
-      // All members participate in General shopping
-      const generalCount = appData.members.length || 1;
-
-      appData.shopping.forEach(s => {
-        const amt = parseFloat(s.amount) || 0;
-        if (s.type === "Food") {
-          foodTotal += amt;
-          const share = amt / foodCount;
-          foodEligibleMembers.forEach(m => {
-            if (memberStats[m.id]) memberStats[m.id].food += share;
-          });
-        } else {
-          genTotal += amt;
-          const share = amt / generalCount;
-          appData.members.forEach(m => {
-            if (memberStats[m.id]) memberStats[m.id].general += share;
-          });
-        }
-      });
-
-      appData.payments.forEach(p => {
-        const amt = parseFloat(p.amount) || 0;
-        paidTotal += amt;
-        if (memberStats[p.memberId]) memberStats[p.memberId].paid += amt;
-      });
-
-      Object.values(memberStats).forEach(m => {
-        m.bill = m.food + m.general;
-        if (m.paid >= m.bill) {
-          m.overpaid = m.paid - m.bill;
-          m.due = 0;
-        } else {
-          m.due = m.bill - m.paid;
-          m.overpaid = 0;
-        }
-      });
-
-      const grandTotal = foodTotal + genTotal;
-      const cashInHand = paidTotal - grandTotal;
-      return { foodTotal, genTotal, grandTotal, paidTotal, cashInHand, memberStats };
-    }
-
-    function renderAll() {
-      const c = calculate();
-      document.getElementById("dFood").textContent = formatMoney(c.foodTotal);
-      document.getElementById("dGen").textContent = formatMoney(c.genTotal);
-      document.getElementById("dTotal").textContent = formatMoney(c.grandTotal);
-      document.getElementById("dPaid").textContent = formatMoney(c.paidTotal);
-      document.getElementById("dCash").textContent = formatMoney(c.cashInHand);
-
-      // Dash Table
-      document.getElementById("dashTillTodayTableBody").innerHTML = Object.values(c.memberStats).map(m => {
-        const isGeneralOnly = (m.contributionType === "GENERAL_ONLY");
-        const typeBadge = isGeneralOnly 
-          ? `<span class="badge badge-general">General Only</span>` 
-          : `<span class="badge badge-both">Food + General</span>`;
-
-        return `
-          <tr>
-            <td><strong>${m.name}</strong></td>
-            <td>${typeBadge}</td>
-            <td>${isGeneralOnly ? '<span style="color:var(--text-muted);">-</span>' : formatMoney(m.food)}</td>
-            <td>${formatMoney(m.general)}</td>
-            <td><strong style="color:#059669;">${formatMoney(m.bill)}</strong></td>
-            <td>${formatMoney(m.paid)}</td>
-            <td>${m.due > 0 ? `<span class="badge badge-due">বকেয়া ${formatMoney(m.due)}</span>` : `<span class="badge badge-overpaid">উদ্বৃত্ত ${formatMoney(m.overpaid)}</span>`}</td>
-          </tr>
-        `;
-      }).join("");
-
-      // Shopping Table
-      const isAdmin = (currentUser && currentUser.role === "ADMIN");
-      const foodCount = appData.members.filter(m => (m.contributionType || "BOTH") === "BOTH").length;
-      const totalCount = appData.members.length;
-
-      document.getElementById("shopTableBody").innerHTML = appData.shopping.map(s => {
-        const isFood = (s.type === "Food");
-        const typeBadge = isFood 
-          ? `<span class="badge badge-food">🍲 Food</span>` 
-          : `<span class="badge badge-general">🧼 General</span>`;
-        const memberShareNote = isFood ? `${foodCount} জন (Both)` : `${totalCount} জন (সকল)`;
-
-        return `
-          <tr>
-            <td>${s.date}</td>
-            <td>${typeBadge}</td>
-            <td><strong>${s.item}</strong></td>
-            <td>${formatMoney(s.amount)}</td>
-            <td><small style="color:var(--text-muted); font-weight:600;">${memberShareNote}</small></td>
-            <td>${s.shopper}</td>
-            <td>${s.voucher ? `<button class="btn btn-secondary btn-sm" onclick="viewVoucher('${s.id}')">🧾 রসিদ দেখুন</button>` : `<span style="color:var(--text-muted); font-size:11px;">নেই</span>`}</td>
-            <td>${isAdmin ? `<button class="btn btn-danger btn-sm" onclick="deleteShopping('${s.id}')">মুছুন</button>` : '-'}</td>
-          </tr>
-        `;
-      }).join("") || `<tr><td colspan="8" style="text-align:center;">কোনো এন্ট্রি নেই</td></tr>`;
-
-      // Payment Table
-      document.getElementById("payTableBody").innerHTML = appData.payments.map(p => `
-        <tr>
-          <td>${p.date}</td>
-          <td><strong>${p.member}</strong></td>
-          <td>${formatMoney(p.amount)}</td>
-          <td>${p.method}</td>
-          <td>${p.ref || '-'}</td>
-          <td>${isAdmin ? `<button class="btn btn-danger btn-sm" onclick="deletePayment('${p.id}')">মুছুন</button>` : '-'}</td>
-        </tr>
-      `).join("") || `<tr><td colspan="6" style="text-align:center;">কোনো জমা নেই</td></tr>`;
-
-      // Members Table
-      document.getElementById("memTableBody").innerHTML = appData.members.map(m => {
-        const stat = c.memberStats[m.id] || { bill: 0, paid: 0, due: 0, overpaid: 0 };
-        const isGeneralOnly = (m.contributionType === "GENERAL_ONLY");
-        const typeBadge = isGeneralOnly 
-          ? `<span class="badge badge-general">General Only</span>` 
-          : `<span class="badge badge-both">Food + General</span>`;
-
-        return `
-          <tr>
-            <td><strong>${m.name}</strong></td>
-            <td><code>${m.phone}</code></td>
-            <td><span class="badge ${m.role === 'ADMIN' ? 'badge-food' : ''}">${m.role}</span></td>
-            <td>${typeBadge}</td>
-            <td>${isGeneralOnly ? '<span style="color:var(--text-muted);">-</span>' : formatMoney(stat.food)}</td>
-            <td>${formatMoney(stat.general)}</td>
-            <td><strong>${formatMoney(stat.bill)}</strong></td>
-            <td>${formatMoney(stat.paid)}</td>
-            <td>${stat.due > 0 ? `<span class="badge badge-due">বকেয়া ${formatMoney(stat.due)}</span>` : `<span class="badge badge-overpaid">উদ্বৃত্ত ${formatMoney(stat.overpaid)}</span>`}</td>
-            <td>
-              ${isAdmin ? `
-                <button class="btn btn-secondary btn-sm" onclick="editMember('${m.id}')">এডিট</button>
-                <button class="btn btn-danger btn-sm" onclick="deleteMember('${m.id}')">মুছুন</button>
-              ` : '-'}
-            </td>
-          </tr>
-        `;
-      }).join("");
-
-      if (document.getElementById("setAptName")) document.getElementById("setAptName").value = appData.messName || "Our Home Community";
-      if (document.getElementById("setAdminPin")) document.getElementById("setAdminPin").value = ADMIN_SECRET_PIN;
-    }
-
-    function updateUserDisplay() {
-      if (!currentUser) return;
-      const isAdmin = (currentUser.role === "ADMIN");
-
-      document.getElementById("sideUserName").textContent = currentUser.name;
-      const topBadge = document.getElementById("topRoleBadge");
-      topBadge.textContent = `${currentUser.role} (${currentUser.name})`;
-      topBadge.className = isAdmin ? "role-badge admin" : "role-badge member";
-
-      const btnAddMem = document.getElementById("btnAddMemberBtn");
-      if (btnAddMem) btnAddMem.style.display = isAdmin ? "inline-block" : "none";
-
-      const btnDashMoney = document.getElementById("btnDashMoneyAction");
-      if (btnDashMoney) btnDashMoney.style.display = isAdmin ? "flex" : "none";
-      const btnMoneyAddTop = document.getElementById("btnMoneyAddTop");
-      if (btnMoneyAddTop) btnMoneyAddTop.style.display = isAdmin ? "inline-block" : "none";
-
-      const sideNavSettings = document.getElementById("sideNavSettings");
-      if (sideNavSettings) sideNavSettings.style.display = isAdmin ? "block" : "none";
-      const cardSettings = document.getElementById("cardSettingsMain");
-      if (cardSettings) cardSettings.style.display = isAdmin ? "block" : "none";
-    }
-
-    function switchLoginMode(mode) {
-      document.getElementById("tabMemberBtn").classList.toggle("active", mode === "MEMBER");
-      document.getElementById("tabAdminBtn").classList.toggle("active", mode === "ADMIN");
-      document.getElementById("loginMemberForm").style.display = (mode === "MEMBER") ? "block" : "none";
-      document.getElementById("loginAdminForm").style.display = (mode === "ADMIN") ? "block" : "none";
-      document.getElementById("loginAlert").style.display = "none";
-    }
-
-    function doMemberLogin() {
-      const phoneInput = document.getElementById("loginPhoneInput");
-      const p = cleanPhone(phoneInput ? phoneInput.value : "");
-      const alertBox = document.getElementById("loginAlert");
-      alertBox.style.display = "none";
-
-      if (!p) {
-        alertBox.textContent = "অনুগ্রহ করে আপনার মোবাইল নম্বর দিন!";
-        alertBox.style.display = "block";
-        return;
-      }
-
-      const found = appData.members.find(m => cleanPhone(m.phone) === p);
-      if (found) {
-        currentUser = { id: found.id, name: found.name, phone: found.phone, role: "MEMBER" };
-        sessionStorage.setItem("ACTIVE_SESSION_USER", JSON.stringify(currentUser));
-        
-        document.getElementById("loginScreen").style.display = "none";
-        document.getElementById("appMainWrapper").style.display = "flex";
-        
-        updateUserDisplay();
-        renderAll();
-        showToast(`স্বাগতম, ${found.name}!`);
-      } else {
-        alertBox.textContent = "❌ এই মোবাইল নম্বরে কোনো মেম্বার পাওয়া যায়নি! সঠিক নম্বর দিন।";
-        alertBox.style.display = "block";
-      }
-    }
-
-    function doAdminLogin() {
-      const pinInput = document.getElementById("adminPinInput");
-      const pin = pinInput ? pinInput.value.trim() : "";
-      const alertBox = document.getElementById("loginAlert");
-      alertBox.style.display = "none";
-
-      if (!pin) {
-        alertBox.textContent = "অনুগ্রহ করে অ্যাডমিন পিন দিন!";
-        alertBox.style.display = "block";
-        return;
-      }
-
-      if (pin === ADMIN_SECRET_PIN) {
-        currentUser = { id: "admin", name: "মাহি (Admin)", phone: "01308650721", role: "ADMIN" };
-        sessionStorage.setItem("ACTIVE_SESSION_USER", JSON.stringify(currentUser));
-
-        document.getElementById("loginScreen").style.display = "none";
-        document.getElementById("appMainWrapper").style.display = "flex";
-
-        updateUserDisplay();
-        renderAll();
-        showToast("অ্যাডমিন হিসেবে সফল লগইন হয়েছে!");
-      } else {
-        alertBox.textContent = "❌ ভুল অ্যাডমিন পিন! মেম্বাররা মেম্বার ট্যাবে লগইন করুন।";
-        alertBox.style.display = "block";
-      }
-    }
-
-    function doLogout() {
-      sessionStorage.removeItem("ACTIVE_SESSION_USER");
-      currentUser = null;
-      document.getElementById("appMainWrapper").style.display = "none";
-      document.getElementById("loginScreen").style.display = "flex";
-      switchLoginMode("MEMBER");
-      showToast("লগআউট সম্পন্ন হয়েছে।");
-    }
-
-    function showTab(tabId) {
-      if (tabId === "settings" && (!currentUser || currentUser.role !== "ADMIN")) {
-        alert("শুধুমাত্র অ্যাডমিন সেটিংস দেখতে পারেন!");
-        return;
-      }
-      document.querySelectorAll("[id^='tab-']").forEach(t => t.style.display = "none");
-      document.getElementById("tab-" + tabId).style.display = "block";
-      document.querySelectorAll(".sidebar-nav a, .m-bottom-nav .m-item").forEach(a => a.classList.remove("active"));
-      if (document.getElementById("nav-" + tabId)) document.getElementById("nav-" + tabId).classList.add("active");
-      if (document.getElementById("mNav-" + tabId)) document.getElementById("mNav-" + tabId).classList.add("active");
-    }
-
-    /* VOUCHER BUTTON CLICK HANDLER */
-    function triggerVoucherSelect(useCamera) {
-      const fileInput = document.getElementById("mShopVoucherInput");
-      if (!fileInput) return;
-      if (useCamera) {
-        fileInput.setAttribute("capture", "environment");
-      } else {
-        fileInput.removeAttribute("capture");
-      }
-      fileInput.click();
-    }
-
-    function handleVoucherFileSelected(input) {
-      if (!input.files || !input.files[0]) return;
-      const file = input.files[0];
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const img = new Image();
-        img.onload = function() {
-          const canvas = document.createElement("canvas");
-          const maxDim = 800;
-          let w = img.width, h = img.height;
-          if (w > maxDim || h > maxDim) {
-            if (w > h) { h = Math.round((h * maxDim) / w); w = maxDim; }
-            else { w = Math.round((w * maxDim) / h); h = maxDim; }
-          }
-          canvas.width = w; canvas.height = h;
-          const ctx = canvas.getContext("2d");
-          ctx.drawImage(img, 0, 0, w, h);
-          currentVoucherBase64 = canvas.toDataURL("image/jpeg", 0.65);
-          
-          document.getElementById("voucherPreviewImg").src = currentVoucherBase64;
-          document.getElementById("voucherFileName").textContent = file.name || "voucher.jpg";
-          document.getElementById("voucherPreviewBox").style.display = "flex";
-        };
-        img.src = e.target.result;
-      };
-      reader.readAsDataURL(file);
-    }
-
-    function clearVoucherUpload() {
-      currentVoucherBase64 = null;
-      document.getElementById("mShopVoucherInput").value = "";
-      document.getElementById("voucherPreviewBox").style.display = "none";
-    }
-
-    function previewCurrentVoucherModal() {
-      if (!currentVoucherBase64) return;
-      document.getElementById("modalVoucherTitle").textContent = "🧾 মেমোর বর্তমান প্রিভিউ";
-      document.getElementById("modalVoucherImg").src = currentVoucherBase64;
-      document.getElementById("btnDownloadVoucher").href = currentVoucherBase64;
-      document.getElementById("modalVoucher").classList.add("active");
-    }
-
-    function viewVoucher(shopId) {
-      const s = appData.shopping.find(item => item.id === shopId);
-      if (!s || !s.voucher) return alert("কোনো ভাউচার ছবি পাওয়া যায়নি!");
-      document.getElementById("modalVoucherTitle").textContent = `🧾 ${s.item} - ভাউচার রসিদ`;
-      document.getElementById("modalVoucherImg").src = s.voucher;
-      document.getElementById("btnDownloadVoucher").href = s.voucher;
-      document.getElementById("modalVoucher").classList.add("active");
-    }
-
-    function openShopModal() {
-      const select = document.getElementById("mShopShopper");
-      const isAdmin = (currentUser && currentUser.role === "ADMIN");
-
-      if (isAdmin) {
-        select.innerHTML = appData.members.map(m => `<option value="${m.name}">👤 ${m.name}</option>`).join("");
-        select.disabled = false;
-      } else {
-        select.innerHTML = `<option value="${currentUser.name}">👤 ${currentUser.name}</option>`;
-        select.disabled = true;
-      }
-
-      document.getElementById("mShopItem").value = "";
-      document.getElementById("mShopAmount").value = "";
-      document.getElementById("mShopType").value = "Food";
-      clearVoucherUpload();
-      document.getElementById("modalShop").classList.add("active");
-    }
-
-    function submitShopping() {
-      const item = document.getElementById("mShopItem").value.trim();
-      const amount = parseFloat(document.getElementById("mShopAmount").value);
-      const type = document.getElementById("mShopType").value;
-      const shopper = currentUser.role === "ADMIN" ? document.getElementById("mShopShopper").value : currentUser.name;
-
-      if (!item || !amount) return alert("সব ঘর পূরণ করুন!");
-
-      appData.shopping.unshift({
-        id: "SHOP-" + Date.now(),
-        date: new Date().toISOString().substring(0, 10),
-        type, item, amount, shopper,
-        voucher: currentVoucherBase64
-      });
-      saveState();
-      renderAll();
-      closeModal("modalShop");
-      showToast("🛒 বাজার ও ভাউচার লাইভ সেভ হয়েছে!");
-    }
-
-    function deleteShopping(id) {
-      if (!currentUser || currentUser.role !== "ADMIN") return alert("শুধুমাত্র অ্যাডমিন মুছতে পারেন!");
-      if (confirm("মুছে ফেলতে চান?")) {
-        appData.shopping = appData.shopping.filter(s => s.id !== id);
-        saveState();
-        renderAll();
-        showToast("মুছে ফেলা হয়েছে!");
-      }
-    }
-
-    function handleMoneyClick() {
-      if (!currentUser || currentUser.role !== "ADMIN") return alert("শুধুমাত্র অ্যাডমিন টাকা জমা রেকর্ড করতে পারেন!");
-      document.getElementById("mPayMember").innerHTML = appData.members.map(m => `<option value="${m.id}|${m.name}">👤 ${m.name}</option>`).join("");
-      document.getElementById("modalPay").classList.add("active");
-    }
-
-    function submitPayment() {
-      if (!currentUser || currentUser.role !== "ADMIN") return alert("শুধুমাত্র অ্যাডমিন জমা দিতে পারেন!");
-      const [mId, mName] = document.getElementById("mPayMember").value.split("|");
-      const amount = parseFloat(document.getElementById("mPayAmount").value);
-      const method = document.getElementById("mPayMethod").value;
-      const ref = document.getElementById("mPayRef").value.trim();
-
-      if (!amount) return alert("টাকার পরিমাণ দিন!");
-
-      appData.payments.unshift({ id: "PAY-" + Date.now(), date: new Date().toISOString().substring(0, 10), memberId: mId, member: mName, amount, method, ref });
-      saveState();
-      renderAll();
-      closeModal("modalPay");
-      showToast("💰 জমা লাইভ রেকর্ড হয়েছে!");
-    }
-
-    function deletePayment(id) {
-      if (!currentUser || currentUser.role !== "ADMIN") return alert("শুধুমাত্র অ্যাডমিন মুছতে পারেন!");
-      if (confirm("মুছবেন?")) {
-        appData.payments = appData.payments.filter(p => p.id !== id);
-        saveState();
-        renderAll();
-        showToast("মুছে ফেলা হয়েছে!");
-      }
-    }
-
-    function openAddMemberModal() {
-      if (!currentUser || currentUser.role !== "ADMIN") return alert("শুধুমাত্র অ্যাডমিন সদস্য যোগ করতে পারেন!");
-      document.getElementById("modalMemberHeading").textContent = "👥 নতুন সদস্য যোগ করুন (Admin Only)";
-      document.getElementById("editMemberId").value = "";
-      document.getElementById("mMemName").value = "";
-      document.getElementById("mMemPhone").value = "";
-      document.getElementById("mMemRole").value = "MEMBER";
-      document.getElementById("mMemContributionType").value = "BOTH";
-      document.getElementById("modalMember").classList.add("active");
-    }
-
-    function editMember(id) {
-      if (!currentUser || currentUser.role !== "ADMIN") return alert("শুধুমাত্র অ্যাডমিন সদস্য এডিট করতে পারেন!");
-      const m = appData.members.find(x => x.id === id);
-      if (!m) return;
-      document.getElementById("modalMemberHeading").textContent = "✏️ সদস্য তথ্য এডিট করুন";
-      document.getElementById("editMemberId").value = m.id;
-      document.getElementById("mMemName").value = m.name;
-      document.getElementById("mMemPhone").value = m.phone;
-      document.getElementById("mMemRole").value = m.role || "MEMBER";
-      document.getElementById("mMemContributionType").value = m.contributionType || "BOTH";
-      document.getElementById("modalMember").classList.add("active");
-    }
-
-    function submitMember() {
-      if (!currentUser || currentUser.role !== "ADMIN") return alert("শুধুমাত্র অ্যাডমিন সদস্য সংরক্ষণ করতে পারেন!");
-      const editId = document.getElementById("editMemberId").value;
-      const name = document.getElementById("mMemName").value.trim();
-      const phone = document.getElementById("mMemPhone").value.trim();
-      const role = document.getElementById("mMemRole").value;
-      const contributionType = document.getElementById("mMemContributionType").value;
-
-      if (!name || !phone) return alert("নাম ও ফোন নম্বর দিন!");
-
-      if (editId) {
-        const m = appData.members.find(x => x.id === editId);
-        if (m) {
-          m.name = name;
-          m.phone = phone;
-          m.role = role;
-          m.contributionType = contributionType;
-          saveState();
-          renderAll();
-          closeModal("modalMember");
-          showToast("সদস্য তথ্য সফলভাবে আপডেট হয়েছে!");
-          return;
-        }
-      }
-
-      appData.members.push({ id: "m_" + Date.now(), name, phone, role, contributionType });
-      saveState();
-      renderAll();
-      closeModal("modalMember");
-      showToast("নতুন সদস্য যুক্ত হয়েছে!");
-    }
-
-    function deleteMember(id) {
-      if (!currentUser || currentUser.role !== "ADMIN") return alert("শুধুমাত্র অ্যাডমিন সদস্য মুছতে পারেন!");
-      if (confirm("সদস্য মুছে দিতে চান?")) {
-        appData.members = appData.members.filter(m => m.id !== id);
-        saveState();
-        renderAll();
-      }
-    }
-
-    /* FULL MONTHLY STATEMENT & PAST MONTH ARCHIVE PDF */
-    function openMonthPdfModal(monthKey) {
-      let title = "";
-      let food = 0, gen = 0, grand = 0;
-      let membersList = [];
-      let shoppingList = [];
-
-      if (monthKey === "curr") {
-        const c = calculate();
-        title = "চলতি মাস: অক্টোবর ২০২৬ (লাইভ স্টেটমেন্ট)";
-        food = c.foodTotal; gen = c.genTotal; grand = c.grandTotal;
-        membersList = Object.values(c.memberStats).map(m => ({
-          name: m.name, 
-          type: (m.contributionType === "GENERAL_ONLY" ? "General Only" : "Both"),
-          food: m.food, 
-          general: m.general, 
-          bill: m.bill, 
-          paid: m.paid,
-          status: m.due > 0 ? `বকেয়া ${formatMoney(m.due)}` : `উদ্বৃত্ত ${formatMoney(m.overpaid)}`
-        }));
-        shoppingList = appData.shopping || [];
-      } else if (pastMonthsArchive[monthKey]) {
-        const arch = pastMonthsArchive[monthKey];
-        title = arch.name;
-        food = arch.foodTotal; gen = arch.genTotal; grand = arch.grandTotal;
-        membersList = arch.members.map(m => ({
-          name: m.name,
-          type: (m.type === "GENERAL_ONLY" ? "General Only" : "Both"),
-          food: m.food, 
-          general: m.general, 
-          bill: m.bill, 
-          paid: m.paid,
-          status: m.due > 0 ? `বকেয়া ${formatMoney(m.due)}` : `উদ্বৃত্ত ${formatMoney(m.overpaid)}`
-        }));
-        shoppingList = arch.shopping || [];
-      }
-
-      document.getElementById("pdfMonthBadge").textContent = title;
-      document.getElementById("pdfFoodTotal").textContent = formatMoney(food);
-      document.getElementById("pdfGenTotal").textContent = formatMoney(gen);
-      document.getElementById("pdfGrandTotal").textContent = formatMoney(grand);
-      document.getElementById("pdfPrintDate").textContent = new Date().toLocaleDateString('bn-BD');
-
-      document.getElementById("pdfStatementTableBody").innerHTML = membersList.map((m, idx) => `
-        <tr style="border-bottom:1px solid #CBD5E1; text-align:center;">
-          <td style="padding:7px; text-align:left;"><strong>${idx + 1}. ${m.name}</strong></td>
-          <td style="padding:7px;"><span class="badge ${m.type === 'Both' ? 'badge-both' : 'badge-general'}">${m.type}</span></td>
-          <td style="padding:7px;">${m.type === 'General Only' ? '-' : formatMoney(m.food)}</td>
-          <td style="padding:7px;">${formatMoney(m.general)}</td>
-          <td style="padding:7px; font-weight:700; color:#0F172A;">${formatMoney(m.bill)}</td>
-          <td style="padding:7px;">${formatMoney(m.paid)}</td>
-          <td style="padding:7px;"><strong>${m.status}</strong></td>
-        </tr>
-      `).join("");
-
-      document.getElementById("pdfShoppingTableBody").innerHTML = shoppingList.map((s, idx) => `
-        <tr style="border-bottom:1px solid #E2E8F0;">
-          <td style="padding:6px; text-align:center;">${idx + 1}</td>
-          <td style="padding:6px;">${s.date}</td>
-          <td style="padding:6px;">${s.type}</td>
-          <td style="padding:6px; font-weight:600;">${s.item}</td>
-          <td style="padding:6px;">${s.shopper}</td>
-          <td style="padding:6px; text-align:right; font-weight:700; color:#059669;">${formatMoney(s.amount)}</td>
-        </tr>
-      `).join("") || `<tr><td colspan="6" style="text-align:center; padding:12px;">কোনো বাজার তালিকা নেই</td></tr>`;
-
-      document.getElementById("modalMonthlyPdf").classList.add("active");
-    }
-
-    function printPdfModal() { window.print(); }
-
-    function submitSaveGeneralSettings() {
-      if (!currentUser || currentUser.role !== "ADMIN") return alert("শুধুমাত্র অ্যাডমিন সেটিংস পরিবর্তন করতে পারেন!");
-      appData.messName = document.getElementById("setAptName").value.trim();
-      ADMIN_SECRET_PIN = document.getElementById("setAdminPin").value.trim();
-      saveState();
-      renderAll();
-      showToast("সেটিংস সংরক্ষিত হয়েছে!");
-    }
-
-    function closeModal(id) { document.getElementById(id).classList.remove("active"); }
-
-    window.onload = function() {
-      const saved = localStorage.getItem("OUR_APARTMENT_DB");
-      if (saved) {
-        try { appData = JSON.parse(saved); } catch (e) {}
-      }
-
-      const sessionUser = sessionStorage.getItem("ACTIVE_SESSION_USER");
-      if (sessionUser) {
-        try {
-          currentUser = JSON.parse(sessionUser);
-          document.getElementById("loginScreen").style.display = "none";
-          document.getElementById("appMainWrapper").style.display = "flex";
-          updateUserDisplay();
-          renderAll();
-        } catch (e) {
-          currentUser = null;
-        }
-      }
-
-      if (!currentUser) {
-        document.getElementById("appMainWrapper").style.display = "none";
-        document.getElementById("loginScreen").style.display = "flex";
-        switchLoginMode("MEMBER");
-      }
-
-      initFirebaseSync();
-    };
-  </script>
+<div class="wrap" id="app"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+const SB_URL='https://ocxepcudtvexkpwznaua.supabase.co',SB_KEY='sb_publishable_LxZhiPdAn167kxau1wyd8A_uK7wORPu',CUR='€';
+const sb=supabase.createClient(SB_URL,SB_KEY);
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const money=n=>CUR+' '+(+n||0).toFixed(2);
+const email=p=>p.replace(/\D/g,'')+'@messbill.app';
+const ym=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+const today=()=>{const d=new Date();return ym(d)+'-'+String(d.getDate()).padStart(2,'0')};
+const months=()=>{const r=[],d=new Date();d.setDate(1);for(let i=0;i<3;i++){r.push(ym(d));d.setMonth(d.getMonth()-1)}return r};
+let me,profiles=[],items=[],deposits=[],code='',month=ym(new Date()),tab='sum';
+
+function login(msg='',first=false){
+ $('#app').innerHTML=`<div class="login"><h1>মেস খাতা</h1><p class="mut">ফোন নম্বর ও ৬ সংখ্যার পিন দিয়ে ঢুকুন</p>
+ <form onsubmit="return doLogin(event,${first})">
+ <input name="ph" placeholder="ফোন নম্বর (দেশের কোডসহ)" inputmode="tel" required>
+ <input name="pin" type="password" placeholder="পিন (৬ সংখ্যা)" inputmode="numeric" minlength="6" maxlength="6" required>
+ ${first?'<input name="nm" placeholder="আপনার নাম" required>':''}
+ <button>${first?'অ্যাডমিন অ্যাকাউন্ট খুলুন':'ঢুকুন'}</button></form>
+ <p class="err">${esc(msg)}</p>
+ <a href="#" onclick="login('',${!first});return false">${first?'সাধারণ লগইনে ফিরুন':'প্রথমবার: অ্যাডমিন সেটআপ'}</a></div>`}
+async function doLogin(e,first){
+ e.preventDefault();const f=new FormData(e.target),ph=f.get('ph'),pin=f.get('pin');
+ const r=first?await sb.auth.signUp({email:email(ph),password:pin,options:{data:{name:f.get('nm'),phone:ph}}})
+  :await sb.auth.signInWithPassword({email:email(ph),password:pin});
+ if(r.error)return login('লগইন হয়নি: '+r.error.message,first);
+ start();return false}
+async function start(){
+ const{data:{session}}=await sb.auth.getSession();if(!session)return login();
+ const r=await sb.from('profiles').select('*').eq('id',session.user.id).single();
+ me=r.data;if(!me)return login('প্রোফাইল পাওয়া যায়নি');
+ await load();main()}
+async function load(){
+ const[p,i,d]=await Promise.all([sb.from('profiles').select('*').order('name'),sb.from('items').select('*').order('date',{ascending:false}),sb.from('deposits').select('*').order('date',{ascending:false})]);
+ profiles=p.data||[];items=i.data||[];deposits=d.data||[];
+ if(me.role==='admin'){const c=await sb.from('settings').select('value').eq('key','invite_code').single();code=c.data?.value||''}}
+async function out(){await sb.auth.signOut();login()}
+
+function calc(uid){
+ let f=0,g=0;const rows=[],t=today();
+ items.filter(x=>x.date.startsWith(month)&&x.date<=t).forEach(x=>{
+  const ok=profiles.filter(p=>x.participants.includes(p.id)&&p.join_date<=x.date&&(!p.leave_date||p.leave_date>=x.date));
+  if(!ok.some(p=>p.id===uid))return;
+  const s=x.amount/ok.length;if(x.kind==='food')f+=s;else g+=s;rows.push({x,s})});
+ const ds=deposits.filter(d=>d.member_id===uid&&d.date.startsWith(month)),p=ds.reduce((a,d)=>a+ +d.amount,0);
+ return{f,g,p,bal:p-f-g,rows,ds}}
+const kind=k=>k==='food'?'খাবার':'সাধারণ';
+
+function memberView(uid){
+ const c=calc(uid),m=profiles.find(x=>x.id===uid);
+ return `<div class="sheet"><h3>${esc(m?.name)} · ${month}</h3>
+ <div class="bal"><span>${c.bal<0?'বাকি':'উদ্বৃত্ত'}</span><b class="${c.bal<0?'bad':'ok'}">${money(Math.abs(c.bal))}</b></div>
+ <div class="row"><span>খাবার</span><b>${money(c.f)}</b></div>
+ <div class="row"><span>সাধারণ</span><b>${money(c.g)}</b></div>
+ <div class="row"><span>মোট বিল (আজ পর্যন্ত)</span><b>${money(c.f+c.g)}</b></div>
+ <div class="row"><span>মোট জমা</span><b>${money(c.p)}</b></div></div>
+ <div class="sheet"><h3>বাজারের তালিকা</h3><div class="wide"><table><tr><th>তারিখ</th><th>ধরন</th><th>কী</th><th class="num">আপনার ভাগ</th></tr>
+ ${c.rows.map(r=>`<tr><td>${r.x.date}</td><td>${kind(r.x.kind)}</td><td>${esc(r.x.title)}</td><td class="num">${money(r.s)}</td></tr>`).join('')||'<tr><td colspan="4" class="mut">এই মাসে এখনো কোনো বাজার নেই</td></tr>'}</table></div></div>
+ <div class="sheet"><h3>জমার তালিকা</h3><div class="wide"><table>
+ ${c.ds.map(d=>`<tr><td>${d.date}</td><td>${esc(d.note)}</td><td class="num">${money(d.amount)}</td></tr>`).join('')||'<tr><td class="mut">এই মাসে এখনো জমা নেই</td></tr>'}</table></div></div>`}
+
+function main(){
+ const adm=me.role==='admin';
+ let body='';
+ if(!adm)body=memberView(me.id);
+ else if(tab==='sum')body=sumView();
+ else if(tab==='mem')body=memView();
+ else if(tab==='shop')body=shopView();
+ else body=depView();
+ $('#app').innerHTML=`<div class="bar noprint"><div><b>${esc(me.name)}</b> <span class="mut">${adm?'অ্যাডমিন':'সদস্য'}</span></div>
+ <div><select onchange="month=this.value;main()" style="width:auto">${months().map(m=>`<option ${m===month?'selected':''}>${m}</option>`).join('')}</select>
+ <button class="ghost sm" onclick="print()">PDF</button> <button class="ghost sm" onclick="out()">বের হন</button></div></div>
+ ${adm?`<div class="tabs noprint">${[['sum','সামারি'],['mem','সদস্য'],['shop','বাজার'],['dep','জমা']].map(t=>`<button class="${t[0]===tab?'on':''}" onclick="tab='${t[0]}';main()">${t[1]}</button>`).join('')}</div>`:''}
+ ${body}`}
+
+function sumView(){
+ let T=0;
+ const rows=profiles.map(p=>{const c=calc(p.id);T+=c.f+c.g;return `<tr><td>${esc(p.name)}</td><td class="num">${money(c.f)}</td><td class="num">${money(c.g)}</td><td class="num">${money(c.p)}</td><td class="num ${c.bal<0?'bad':'ok'}">${c.bal<0?'বাকি ':'উদ্বৃত্ত '}${money(Math.abs(c.bal))}</td></tr>`}).join('');
+ return `<div class="sheet"><h3>সবার হিসাব · ${month}</h3><div class="wide"><table><tr><th>নাম</th><th class="num">খাবার</th><th class="num">সাধারণ</th><th class="num">জমা</th><th class="num">অবস্থা</th></tr>${rows}</table></div><p>মোট খরচ (আজ পর্যন্ত): <b>${money(T)}</b></p></div>`}
+
+function memView(){
+ return `<div class="sheet noprint"><h3>নতুন সদস্য</h3><form onsubmit="return addMember(event)">
+ <input name="name" placeholder="নাম" required><input name="phone" placeholder="ফোন নম্বর (দেশের কোডসহ)" inputmode="tel" required>
+ <input name="pin" placeholder="পিন (৬ সংখ্যা)" inputmode="numeric" minlength="6" maxlength="6" required>
+ <input name="join" type="date" value="${today()}" required><button>সদস্য যোগ করুন</button></form></div>
+ <div class="sheet"><h3>সদস্যদের তালিকা</h3><div class="wide"><table><tr><th>নাম</th><th>ফোন</th><th>যোগদান</th><th></th></tr>
+ ${profiles.map(p=>`<tr><td>${esc(p.name)}</td><td>${esc(p.phone)}</td><td>${p.join_date||''}${p.leave_date?' → '+p.leave_date:''}</td>
+ <td class="noprint"><button class="ghost sm" onclick="editMember('${p.id}')">পিন/ফোন</button> ${p.leave_date||p.role==='admin'?'':`<button class="ghost sm" onclick="leave('${p.id}')">বিদায়</button>`}</td></tr>`).join('')}</table></div></div>`}
+async function addMember(e){
+ e.preventDefault();const f=new FormData(e.target);
+ const c=supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:false,autoRefreshToken:false}});
+ const r=await c.auth.signUp({email:email(f.get('phone')),password:f.get('pin'),options:{data:{name:f.get('name'),phone:f.get('phone'),join:f.get('join'),code}}});
+ if(r.error)return alert('সদস্য যোগ হয়নি: '+r.error.message);
+ alert('সদস্য যোগ হয়েছে। এই তথ্য তাকে জানিয়ে দিন:\nফোন নম্বর: '+f.get('phone')+'\nপিন: '+f.get('pin'));
+ await load();main();return false}
+async function leave(id){
+ if(!confirm('এই সদস্যকে আজ থেকে বিদায় দেবেন? আগের হিসাব ঠিক থাকবে।'))return;
+ await sb.from('profiles').update({leave_date:today()}).eq('id',id);await load();main()}
+
+async function editMember(id){
+ const p=profiles.find(x=>x.id===id);
+ const ph=prompt('নতুন ফোন নম্বর (না বদলাতে চাইলে যেমন আছে তেমন রাখুন)',p.phone);if(ph===null)return;
+ const pin=prompt('নতুন পিন, ঠিক ৬ সংখ্যা (না বদলাতে চাইলে ফাঁকা রাখুন)','');if(pin===null)return;
+ if(pin&&!/^\d{6}$/.test(pin))return alert('পিন ঠিক ৬ সংখ্যার হতে হবে');
+ const r=await sb.rpc('admin_update_member',{uid:id,new_phone:ph===p.phone?'':ph,new_pin:pin});
+ if(r.error)return alert('বদলানো হয়নি: '+r.error.message);
+ await load();main();
+ alert('বদলানো হয়েছে।'+(ph!==p.phone?'\nনতুন ফোন নম্বর: '+ph:'')+(pin?'\nনতুন পিন: '+pin:'')+'\nএই তথ্য সদস্যকে জানিয়ে দিন।')}
+
+function shopView(){
+ const list=items.filter(x=>x.date.startsWith(month));
+ return `<div class="sheet noprint"><h3>নতুন বাজার</h3><form onsubmit="return addItem(event)">
+ <input name="date" type="date" value="${today()}" required>
+ <select name="kind"><option value="food">খাবার</option><option value="general">সাধারণ</option></select>
+ <input name="title" placeholder="কী কেনা হয়েছে" required><input name="amount" type="number" step="0.01" min="0" placeholder="অঙ্ক (${CUR})" required>
+ <div class="chk">${profiles.filter(p=>!p.leave_date).map(p=>`<label><input type="checkbox" name="pp" value="${p.id}" checked>${esc(p.name)}</label>`).join('')}</div>
+ <button>বাজার যোগ করুন</button></form></div>
+ <div class="sheet"><h3>${month} মাসের বাজার</h3><div class="wide"><table><tr><th>তারিখ</th><th>ধরন</th><th>কী</th><th class="num">অঙ্ক</th><th></th></tr>
+ ${list.map(x=>`<tr><td>${x.date}</td><td>${kind(x.kind)}</td><td>${esc(x.title)}</td><td class="num">${money(x.amount)}</td><td class="noprint"><button class="ghost sm" onclick="delItem(${x.id})">মুছুন</button></td></tr>`).join('')||'<tr><td class="mut">এই মাসে কোনো বাজার নেই</td></tr>'}</table></div></div>`}
+async function addItem(e){
+ e.preventDefault();const f=new FormData(e.target),pp=f.getAll('pp');
+ if(!pp.length)return alert('অন্তত একজন সদস্য বাছাই করুন');
+ const r=await sb.from('items').insert({date:f.get('date'),kind:f.get('kind'),title:f.get('title'),amount:f.get('amount'),participants:pp});
+ if(r.error)return alert(r.error.message);await load();main();return false}
+async function delItem(id){if(!confirm('এই বাজার মুছবেন?'))return;await sb.from('items').delete().eq('id',id);await load();main()}
+
+function depView(){
+ const name=id=>esc(profiles.find(p=>p.id===id)?.name);
+ const list=deposits.filter(d=>d.date.startsWith(month));
+ return `<div class="sheet noprint"><h3>নতুন জমা</h3><form onsubmit="return addDep(event)">
+ <select name="m">${profiles.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('')}</select>
+ <input name="date" type="date" value="${today()}" required><input name="amount" type="number" step="0.01" min="0" placeholder="অঙ্ক (${CUR})" required>
+ <input name="note" placeholder="নোট (ঐচ্ছিক)"><button>জমা যোগ করুন</button></form></div>
+ <div class="sheet"><h3>${month} মাসের জমা</h3><div class="wide"><table><tr><th>তারিখ</th><th>নাম</th><th class="num">অঙ্ক</th><th></th></tr>
+ ${list.map(d=>`<tr><td>${d.date}</td><td>${name(d.member_id)}</td><td class="num">${money(d.amount)}</td><td class="noprint"><button class="ghost sm" onclick="editDep(${d.id},${d.amount})">এডিট</button> <button class="ghost sm" onclick="delDep(${d.id})">মুছুন</button></td></tr>`).join('')||'<tr><td class="mut">এই মাসে কোনো জমা নেই</td></tr>'}</table></div></div>`}
+async function addDep(e){
+ e.preventDefault();const f=new FormData(e.target);
+ const r=await sb.from('deposits').insert({member_id:f.get('m'),date:f.get('date'),amount:f.get('amount'),note:f.get('note')});
+ if(r.error)return alert(r.error.message);await load();main();return false}
+async function editDep(id,old){
+ const v=prompt('নতুন অঙ্ক',old);if(v===null||isNaN(+v))return;
+ await sb.from('deposits').update({amount:+v}).eq('id',id);await load();main()}
+async function delDep(id){if(!confirm('এই জমা মুছবেন?'))return;await sb.from('deposits').delete().eq('id',id);await load();main()}
+
+start();
+</script>
 </body>
 </html>
